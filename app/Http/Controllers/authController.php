@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Helpers\ApiResponse;
 
 class AuthController extends Controller
 {
@@ -26,23 +27,16 @@ class AuthController extends Controller
 
             $token = Auth::login($user);
 
-            return response()->json([
-                'status' => true,
-                'message' => 'User created successfully',
-                'data' => [
-                    'user' => $user,
-                    'token' => [
-                        'access_token' => $token,
-                        'type' => 'bearer'
-                    ]
+            return ApiResponse::success([
+                'user' => $user,
+                'auth' => [
+                    'token' => $token,
+                    'type' => 'bearer'
                 ]
-            ]);
+            ], 'User created successfully');
 
         } catch (\Throwable $e) {
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return ApiResponse::error($e->getMessage(), 500);
         }
     }
 
@@ -56,55 +50,37 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
 
         if (!$token = Auth::attempt($credentials)) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Unauthorized'
-            ], 401);
+            return ApiResponse::error('Unauthorized', 401);
         }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Login successful',
-            'data' => [
-                'user' => Auth::user(),
-                'token' => [
-                    'access_token' => $token,
-                    'type' => 'bearer'
-                ]
+        return ApiResponse::success([
+            'user' => Auth::user(),
+            'auth' => [
+                'token' => $token,
+                'type' => 'bearer'
             ]
-        ]);
+        ], 'Login successful');
     }
 
     public function logout()
     {
         Auth::logout();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Successfully logged out'
-        ]);
+        return ApiResponse::success([], 'Successfully logged out');
     }
 
     public function refresh()
     {
-        return response()->json([
-            'status' => true,
-            'message' => 'Token refreshed',
-            'data' => [
-                'user' => Auth::user(),
-                'token' => [
-                    'access_token' => Auth::refresh(),
-                    'type' => 'bearer'
-                ]
+        return ApiResponse::success([
+            'user' => Auth::user(),
+            'auth' => [
+                'token' => Auth::refresh(),
+                'type' => 'bearer'
             ]
-        ]);
+        ], 'Token refreshed');
     }
 
     public function me()
     {
-        return response()->json([
-            'status' => true,
-            'data' => Auth::user()
-        ]);
+        return ApiResponse::success(Auth::user(), 'Current user');
     }
 }
