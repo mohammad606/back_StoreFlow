@@ -7,73 +7,98 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class authController extends Controller
+class AuthController extends Controller
 {
-    public function register(Request $req)
+    public function register(Request $request)
     {
-        $req->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:6'
-        ]);
-        $user = User::create([
-            'name' => $req->name,
-            'email' => $req->email,
-            'password' => Hash::make($req->password)
-        ]);
-        $token = Auth::login($user);
-        return response()->json([
-            'status' => 'success',
-            'massage' => 'user created successfully',
-            'user' => $user,
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer',
-            ]
-        ]);
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email',
+                'password' => 'required|string|min:6'
+            ]);
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password)
+            ]);
+
+            $token = Auth::login($user);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User created successfully',
+                'data' => [
+                    'user' => $user,
+                    'token' => [
+                        'access_token' => $token,
+                        'type' => 'bearer'
+                    ]
+                ]
+            ]);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
-    public function login(Request $req)
+    public function login(Request $request)
     {
-        $req->validate([
+        $request->validate([
             'email' => 'required|string|email',
             'password' => 'required|string'
         ]);
-        $credentials = $req->only('email', 'password');
-        $token = Auth::attempt($credentials);
-        if (!$token) {
+
+        $credentials = $request->only('email', 'password');
+
+        if (!$token = Auth::attempt($credentials)) {
             return response()->json([
-                'status' => 'error',
-                'massage' => 'Unauthorized'
+                'status' => false,
+                'message' => 'Unauthorized'
             ], 401);
         }
-        $user = Auth::user();
+
         return response()->json([
-            'status' => 'success',
-            'user' => $user,
-            'authorisation' => [
-                'token' => $token,
-                'type' => 'bearer'
+            'status' => true,
+            'message' => 'Login successful',
+            'data' => [
+                'user' => Auth::user(),
+                'token' => [
+                    'access_token' => $token,
+                    'type' => 'bearer'
+                ]
             ]
         ]);
     }
 
-    public function logout(){
+    public function logout()
+    {
         Auth::logout();
+
         return response()->json([
-            'status'=>'success',
-            'message'=>'Successfully logged out'
+            'status' => true,
+            'message' => 'Successfully logged out'
         ]);
     }
 
-    public function refresh(){
+    public function refresh()
+    {
         return response()->json([
-            'status' => 'success',
-            'user' => Auth::user(),
-            'authorisation' => [
-                'token' => Auth::refresh(),
-                'type' => 'bearer'
+            'status' => true,
+            'message' => 'Token refreshed',
+            'data' => [
+                'user' => Auth::user(),
+                'token' => [
+                    'access_token' => Auth::refresh(),
+                    'type' => 'bearer'
+                ]
             ]
         ]);
     }
+
+
 }
