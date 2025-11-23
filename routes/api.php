@@ -13,5 +13,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::post('/refresh', [AuthController::class, 'refresh'])->name('auth.refresh');
         Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
+        Route::post('/update-name', [AuthController::class, 'updateName'])->name('auth.updateName');
+
     });
 });

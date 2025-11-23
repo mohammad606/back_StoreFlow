@@ -83,4 +83,24 @@ class AuthController extends Controller
     {
         return ApiResponse::success(Auth::user(), 'Current user');
     }
+
+    public function updateName(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        try {
+            $user = Auth::user();
+            $user->name = $request->name;
+            $user->save();
+
+            return ApiResponse::success([
+                'user' => $user
+            ], 'User name updated successfully');
+
+        } catch (\Throwable $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
 }
