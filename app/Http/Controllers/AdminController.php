@@ -9,6 +9,7 @@ use App\Helpers\ApiResponse;
 
 class AdminController extends Controller
 {
+
     public function store(Request $request)
     {
         $request->validate([
@@ -27,7 +28,7 @@ class AdminController extends Controller
 
         return ApiResponse::success($user, 'User created successfully');
     }
-
+    //---------------------------------------------------------------------------------------------------------------
     public function index(Request $request)
     {
         $query = User::query();
@@ -47,7 +48,7 @@ class AdminController extends Controller
 
         return ApiResponse::success($users, 'Users retrieved successfully');
     }
-
+    //---------------------------------------------------------------------------------------------------------------
     public function destroy($id)
     {
         $user = User::findOrFail($id);
