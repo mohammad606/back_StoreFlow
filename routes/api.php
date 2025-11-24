@@ -23,6 +23,7 @@ Route::prefix('auth')->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::post('/users', [AdminController::class, 'store'])->name('users.store');
+            Route::get('/users', [AdminController::class, 'index'])->name('users.index');
         });
 });
 
