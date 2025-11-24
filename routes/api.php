@@ -24,6 +24,8 @@ Route::prefix('auth')->group(function () {
         ->group(function () {
             Route::post('/users', [AdminController::class, 'store'])->name('users.store');
             Route::get('/users', [AdminController::class, 'index'])->name('users.index');
+            Route::delete('/users/{id}', [AdminController::class, 'destroy'])->name('users.destroy');
+
         });
 });
 

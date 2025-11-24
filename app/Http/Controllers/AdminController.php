@@ -47,4 +47,17 @@ class AdminController extends Controller
 
         return ApiResponse::success($users, 'Users retrieved successfully');
     }
+
+    public function destroy($id)
+    {
+        $user = User::findOrFail($id);
+
+        if (auth()->id() === $user->id) {
+            return ApiResponse::error('You cannot delete your own account',403);
+        }
+
+        $user->delete();
+
+        return ApiResponse::success([],'User deleted successfully');
+    }
 }
