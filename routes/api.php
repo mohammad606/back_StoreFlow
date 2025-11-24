@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
@@ -16,4 +17,13 @@ Route::prefix('auth')->group(function () {
         Route::post('/update-name', [AuthController::class, 'updateName'])->name('auth.updateName');
 
     });
+
+    Route::middleware(['auth:api', 'admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::post('/users', [AdminController::class, 'store'])->name('users.store');
+        });
 });
+
+
