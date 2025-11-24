@@ -32,4 +32,22 @@ class StoreController extends Controller
         return ApiResponse::success($products->items(), 'Products retrieved successfully', $products);
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'quantity' => 'required|integer|min:0',
+            'box' => 'required|integer|min:1',
+        ]);
+
+        $product = Store::create([
+            'user_id' => auth()->id(),
+            'name' => $request->name,
+            'quantity' => $request->quantity,
+            'box' => $request->box,
+        ]);
+
+        return ApiResponse::success($product,'Success');
+    }
+
 }

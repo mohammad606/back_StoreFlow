@@ -46,7 +46,7 @@ class AdminController extends Controller
         $perPage = $request->get('perPage', 10);
         $users = $query->paginate($perPage);
 
-        return ApiResponse::success($users, 'Users retrieved successfully');
+        return ApiResponse::success($users->items(), 'Users retrieved successfully',$users);
     }
     //---------------------------------------------------------------------------------------------------------------
     public function destroy($id)
