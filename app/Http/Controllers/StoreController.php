@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Store;
+use App\Models\User;
+
 use App\Helpers\ApiResponse;
 
 class StoreController extends Controller
@@ -11,7 +13,7 @@ class StoreController extends Controller
 
     public function index(Request $request)
     {
-        $query = Store::where('user_id', auth()->id());
+        $query =Store::where('user_id', auth()->id());
         if ($request->has('search')) {
             $search = $request->search;
             $query->where('name', 'like', "%{$search}%");
