@@ -33,5 +33,6 @@ Route::middleware('auth:api')->prefix('store')->group(function () {
     Route::get('/', [StoreController::class, 'index']);
     Route::post('/', [StoreController::class, 'store']);
     Route::post('/{id}', [StoreController::class, 'update']);
+    Route::delete('/{id}', [StoreController::class, 'destroy']);
 
 });

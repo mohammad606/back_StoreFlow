@@ -9,11 +9,9 @@ use App\Helpers\ApiResponse;
 class StoreController extends Controller
 {
 
-
     public function index(Request $request)
     {
-        $user = auth()->user();
-        $query = Store::where('user_id', $user->id);
+        $query = Store::where('user_id', auth()->id());
         if ($request->has('search')) {
             $search = $request->search;
             $query->where('name', 'like', "%{$search}%");
@@ -56,7 +54,7 @@ class StoreController extends Controller
             ->firstOrFail();
 
         $request->validate([
-            'name' => 'sometimes|string|max:255',
+            'name' => 'sometimes|string|max:100',
             'quantity' => 'sometimes|integer|min:0',
             'box' => 'sometimes|integer|min:1',
         ]);
@@ -65,5 +63,13 @@ class StoreController extends Controller
 
         return ApiResponse::success($product, 'Product updated successfully');
     }
+    public function destroy($id)
+    {
+        $product = Store::where('user_id', auth()->id())
+            ->where('id', $id)
+            ->firstOrFail();
+        $product->delete();
 
+        return response()->json(['message' => 'Product deleted successfully']);
+    }
 }
