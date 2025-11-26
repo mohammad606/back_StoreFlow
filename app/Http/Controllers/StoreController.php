@@ -49,5 +49,21 @@ class StoreController extends Controller
 
         return ApiResponse::success($product,'Success');
     }
+    public function update(Request $request, $id)
+    {
+        $product = Store::where('user_id', auth()->id())
+            ->where('id', $id)
+            ->firstOrFail();
+
+        $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'quantity' => 'sometimes|integer|min:0',
+            'box' => 'sometimes|integer|min:1',
+        ]);
+
+        $product->update($request->only('name', 'quantity', 'box'));
+
+        return ApiResponse::success($product, 'Product updated successfully');
+    }
 
 }

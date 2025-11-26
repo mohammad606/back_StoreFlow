@@ -32,5 +32,6 @@ Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
 Route::middleware('auth:api')->prefix('store')->group(function () {
     Route::get('/', [StoreController::class, 'index']);
     Route::post('/', [StoreController::class, 'store']);
+    Route::post('/{id}', [StoreController::class, 'update']);
 
 });
