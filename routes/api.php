@@ -26,9 +26,10 @@ Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
             Route::delete('/users/{id}', [AdminController::class, 'destroy'])->name('users.destroy');
 
         });
-    //---------------------------------------------------------------------------------------------------------------
 
 });
+
+//---------------------------------------------------------------------------------------------------------------
 
 Route::middleware('auth:api')->prefix('store')->group(function () {
     Route::get('/', [StoreController::class, 'index']);
@@ -37,6 +38,8 @@ Route::middleware('auth:api')->prefix('store')->group(function () {
     Route::delete('/{id}', [StoreController::class, 'destroy']);
 
 });
+
+//---------------------------------------------------------------------------------------------------------------
 
 Route::middleware('auth:api')->prefix('customers')->group(function () {
     Route::get('/', [CustomerController::class, 'index']);
