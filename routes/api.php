@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\CustomerController;
 
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
@@ -34,5 +35,13 @@ Route::middleware('auth:api')->prefix('store')->group(function () {
     Route::post('/', [StoreController::class, 'store']);
     Route::post('/{id}', [StoreController::class, 'update']);
     Route::delete('/{id}', [StoreController::class, 'destroy']);
+
+});
+
+Route::middleware('auth:api')->prefix('customers')->group(function () {
+    Route::get('/', [CustomerController::class, 'index']);
+    Route::post('/', [CustomerController::class, 'store']);
+    Route::post('/{id}', [CustomerController::class, 'update']);
+    Route::delete('/{id}', [CustomerController::class, 'destroy']);
 
 });
