@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Http\Requests\AllInput\StoreAllInputRequest;
 use App\Http\Requests\AllInput\UpdateAllInputRequest;
 use App\Services\AllInputService;
@@ -32,6 +33,19 @@ class AllInputController extends Controller
         }
     }
 
+    public function show($id)
+    {
+        try {
+            $invoice = $this->allInputService->getInvoiceById($id);
+
+            return ApiResponse::success($invoice, 'Invoice retrieved successfully');
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error('Invoice not found', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
     public function store(StoreAllInputRequest $request)
     {
         try {
@@ -49,6 +63,8 @@ class AllInputController extends Controller
             $invoice = $this->allInputService->updateInvoice($id, $request->validated());
 
             return ApiResponse::success($invoice, 'Invoice updated successfully');
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error('Invoice not found', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 422);
         }
@@ -60,6 +76,8 @@ class AllInputController extends Controller
             $this->allInputService->deleteInvoice($id);
 
             return ApiResponse::success([], 'Invoice deleted successfully');
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error('Invoice not found', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }

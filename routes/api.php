@@ -58,9 +58,4 @@ Route::middleware('auth:api')->prefix('inputs')->group(function () {
     Route::get('{id}', [AllInputController::class, 'show']);
     Route::post('{id}', [AllInputController::class, 'update']);
     Route::delete('{id}', [AllInputController::class, 'destroy']);
-
-    Route::get('{allInput}/items', [AllInputItemController::class, 'index']);
-    Route::post('{allInput}/items', [AllInputItemController::class, 'store']);
-    Route::put('{allInput}/items/{id}', [AllInputItemController::class, 'update']);
-    Route::delete('{allInput}/items/{id}', [AllInputItemController::class, 'destroy']);
 });

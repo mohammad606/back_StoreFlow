@@ -37,6 +37,13 @@ class AllInputService
         return $query->paginate($perPage);
     }
 
+    public function getInvoiceById(int $id): AllInput
+    {
+        return AllInput::with('items')
+            ->where('user_id', auth()->id())
+            ->findOrFail($id);
+    }
+
     public function createInvoice(array $data): AllInput
     {
         return DB::transaction(function () use ($data) {
