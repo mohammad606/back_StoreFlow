@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\AllInputController;
+use App\Http\Controllers\AllInputItemController;
 
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
@@ -47,4 +49,18 @@ Route::middleware('auth:api')->prefix('customers')->group(function () {
     Route::post('/{id}', [CustomerController::class, 'update']);
     Route::delete('/{id}', [CustomerController::class, 'destroy']);
 
+});
+
+
+Route::middleware('auth:api')->prefix('inputs')->group(function () {
+    Route::get('/', [AllInputController::class, 'index']);
+    Route::post('/', [AllInputController::class, 'store']);
+    Route::get('{id}', [AllInputController::class, 'show']);
+    Route::post('{id}', [AllInputController::class, 'update']);
+    Route::delete('{id}', [AllInputController::class, 'destroy']);
+
+    Route::get('{allInput}/items', [AllInputItemController::class, 'index']);
+    Route::post('{allInput}/items', [AllInputItemController::class, 'store']);
+    Route::put('{allInput}/items/{id}', [AllInputItemController::class, 'update']);
+    Route::delete('{allInput}/items/{id}', [AllInputItemController::class, 'destroy']);
 });
