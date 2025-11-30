@@ -13,7 +13,8 @@ class AllInputController extends Controller
 {
     public function __construct(
         protected AllInputService $allInputService
-    ) {}
+    ) {
+    }
 
     public function index(Request $request)
     {
@@ -76,6 +77,19 @@ class AllInputController extends Controller
             $this->allInputService->deleteInvoice($id);
 
             return ApiResponse::success([], 'Invoice deleted successfully');
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error('Invoice not found', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    public function getInvoiceById($id)
+    {
+        try {
+            $invoice = $this->allInputService->getInvoiceById($id);
+
+            return ApiResponse::success($invoice, 'Invoice retrieved successfully');
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error('Invoice not found', 404);
         } catch (\Exception $e) {

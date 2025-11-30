@@ -90,9 +90,12 @@ class AllInputService
         return DB::transaction(function () use ($id, $data) {
             $invoice = AllInput::with('items')->where('user_id', auth()->id())->findOrFail($id);
 
-            if (isset($data['date'])) $invoice->date = $data['date'];
-            if (isset($data['type'])) $invoice->type = $data['type'];
-            if (isset($data['noa'])) $invoice->noa = $data['noa'];
+            if (isset($data['date']))
+                $invoice->date = $data['date'];
+            if (isset($data['type']))
+                $invoice->type = $data['type'];
+            if (isset($data['noa']))
+                $invoice->noa = $data['noa'];
             if (isset($data['customer_id'])) {
                 $customer = Customer::findOrFail($data['customer_id']);
                 $invoice->customer_id = $customer->id;
@@ -120,9 +123,9 @@ class AllInputService
     {
         DB::transaction(function () use ($id) {
             $invoice = AllInput::with('items')->where('user_id', auth()->id())->findOrFail($id);
-            
+
             $items = $invoice->items;
-            
+
             foreach ($items as $item) {
                 $product = Store::find($item->product_id);
                 if ($product) {
@@ -130,7 +133,7 @@ class AllInputService
                     $product->save();
                 }
             }
-            
+
             $invoice->items()->delete();
             $invoice->delete();
         });
@@ -156,18 +159,18 @@ class AllInputService
     private function addNewItems(AllInput $invoice, array $newItems): void
     {
         $existingProductIds = $invoice->items->pluck('product_id')->toArray();
-        
+
         $newProductIds = collect($newItems)->pluck('product_id')->toArray();
         $duplicatesInNew = array_diff_assoc($newProductIds, array_unique($newProductIds));
         if (!empty($duplicatesInNew)) {
             throw new \Exception('Cannot add duplicate products in new_items');
         }
-        
+
         $duplicatesWithExisting = array_intersect($newProductIds, $existingProductIds);
         if (!empty($duplicatesWithExisting)) {
             throw new \Exception('Some products already exist in the invoice');
         }
-        
+
         $productIds = collect($newItems)->pluck('product_id');
         $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
 
@@ -195,7 +198,7 @@ class AllInputService
             ->whereNotIn('id', $updatedItemIds)
             ->pluck('product_id')
             ->toArray();
-        
+
         foreach ($updatedItems as $updatedItem) {
             $item = AllInputItem::where('id', $updatedItem['id'])
                 ->where('all_input_id', $invoice->id)
@@ -205,7 +208,7 @@ class AllInputService
                 if (in_array($updatedItem['product_id'], $existingProductIds)) {
                     throw new \Exception('Product already exists in the invoice');
                 }
-                
+
                 $otherUpdatedItems = collect($updatedItems)
                     ->where('id', '!=', $updatedItem['id'])
                     ->pluck('product_id')
@@ -213,7 +216,7 @@ class AllInputService
                 if (in_array($updatedItem['product_id'], $otherUpdatedItems)) {
                     throw new \Exception('Cannot update multiple items to the same product');
                 }
-                
+
                 $oldProduct = Store::find($item->product_id);
                 $newProduct = Store::findOrFail($updatedItem['product_id']);
                 $newQuantity = $updatedItem['quantity'] ?? $item->quantity;
@@ -230,10 +233,9 @@ class AllInputService
                 $item->name = $newProduct->name;
                 $item->quantity = $newQuantity;
                 $item->save();
-                
+
                 $existingProductIds[] = $newProduct->id;
-            } 
-            else if (isset($updatedItem['quantity'])) {
+            } else if (isset($updatedItem['quantity'])) {
                 $oldQuantity = $item->quantity;
                 $newQuantity = $updatedItem['quantity'];
                 $difference = $newQuantity - $oldQuantity;

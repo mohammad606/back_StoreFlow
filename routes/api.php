@@ -55,7 +55,7 @@ Route::middleware('auth:api')->prefix('customers')->group(function () {
 Route::middleware('auth:api')->prefix('inputs')->group(function () {
     Route::get('/', [AllInputController::class, 'index']);
     Route::post('/', [AllInputController::class, 'store']);
-    Route::get('{id}', [AllInputController::class, 'show']);
+    Route::get('{id}', [AllInputController::class, 'getInvoiceById']);
     Route::post('{id}', [AllInputController::class, 'update']);
     Route::delete('{id}', [AllInputController::class, 'destroy']);
 });

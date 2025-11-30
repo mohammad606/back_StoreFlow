@@ -34,7 +34,7 @@ class AdminController extends Controller
         $query = User::query();
         if ($request->has('search') && !empty($request->search)) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
                     ->orWhere('email', 'like', "%$search%");
             });
@@ -46,7 +46,7 @@ class AdminController extends Controller
         $perPage = $request->get('perPage', 10);
         $users = $query->paginate($perPage);
 
-        return ApiResponse::success($users->items(), 'Users retrieved successfully',$users);
+        return ApiResponse::success($users->items(), 'Users retrieved successfully', $users);
     }
     //---------------------------------------------------------------------------------------------------------------
     public function destroy($id)
@@ -54,11 +54,12 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
 
         if (auth()->id() === $user->id) {
-            return ApiResponse::error('You cannot delete your own account',403);
+            return ApiResponse::error('You cannot delete your own account', 403);
         }
 
         $user->delete();
 
-        return ApiResponse::success([],'User deleted successfully');
+        return ApiResponse::success([], 'User deleted successfully');
     }
+
 }
