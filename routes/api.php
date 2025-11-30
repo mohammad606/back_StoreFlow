@@ -6,7 +6,6 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AllInputController;
-use App\Http\Controllers\AllInputItemController;
 
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
