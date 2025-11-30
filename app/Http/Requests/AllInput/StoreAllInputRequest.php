@@ -18,8 +18,10 @@ class StoreAllInputRequest extends FormRequest
             'type' => 'required|in:production,return',
             'noa' => 'required|string|max:50',
             'customer_id' => 'required|exists:customers,id',
+            'customer_name' => 'required|string|max:50',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:store,id',
+            'items.*.name' => 'required|string|max:50',
             'items.*.quantity' => 'required|integer|min:1',
         ];
     }

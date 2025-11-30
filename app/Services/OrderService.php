@@ -7,13 +7,12 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Store;
 use App\Models\Customer;
-use Illuminate\Support\Collection;
 
 class OrderService
 {
     public function getAllOrders(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = Order::with('items');
+        $query = Order::with('items')->where('user_id', auth()->id());
 
         if (isset($filters['search'])) {
             $search = $filters['search'];
@@ -38,7 +37,7 @@ class OrderService
 
     public function getOrderById(int $id): Order
     {
-        return Order::with('items')
+        return Order::with('items')->where('user_id', auth()->id())
             ->findOrFail($id);
     }
 
@@ -59,6 +58,7 @@ class OrderService
                 'noa' => $data['noa'],
                 'customer_id' => $customer->id,
                 'customer_name' => $customer->name,
+                'user_id' => auth()->id(),
             ]);
 
             $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
@@ -90,7 +90,7 @@ class OrderService
     public function updateOrder(int $id, array $data): Order
     {
         return DB::transaction(function () use ($id, $data) {
-            $order = Order::with('items')
+            $order = Order::with('items')->where('user_id', auth()->id())
                 ->findOrFail($id);
 
             if (isset($data['date']))
@@ -125,7 +125,7 @@ class OrderService
     public function deleteOrder(int $id): void
     {
         DB::transaction(function () use ($id) {
-            $order = Order::with('items')
+            $order = Order::with('items')->where('user_id', auth()->id())
                 ->findOrFail($id);
 
             $items = $order->items;
@@ -260,6 +260,12 @@ class OrderService
 
                 $product = Store::find($item->product_id);
                 if ($product) {
+                    // If difference is positive (more items), we need to deduct more stock.
+                    // If difference is negative (less items), we need to restore stock.
+                    // Logic: product_qty -= difference. 
+                    // Example: old=5, new=8. diff=3. product_qty -= 3.
+                    // Example: old=5, new=2. diff=-3. product_qty -= -3 => product_qty += 3.
+
                     if ($difference > 0 && $product->quantity < $difference) {
                         throw new \Exception("Insufficient stock for product: {$product->name}");
                     }
