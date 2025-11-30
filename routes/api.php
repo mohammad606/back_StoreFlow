@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AllInputController;
+use App\Http\Controllers\OrderController;
 
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
@@ -51,10 +52,19 @@ Route::middleware('auth:api')->prefix('customers')->group(function () {
 });
 
 
+
 Route::middleware('auth:api')->prefix('inputs')->group(function () {
     Route::get('/', [AllInputController::class, 'index']);
     Route::post('/', [AllInputController::class, 'store']);
     Route::get('{id}', [AllInputController::class, 'getInvoiceById']);
     Route::post('{id}', [AllInputController::class, 'update']);
     Route::delete('{id}', [AllInputController::class, 'destroy']);
+});
+
+Route::middleware('auth:api')->prefix('orders')->group(function () {
+    Route::get('/', [OrderController::class, 'index']);
+    Route::post('/', [OrderController::class, 'store']);
+    Route::get('{id}', [OrderController::class, 'show']);
+    Route::post('{id}', [OrderController::class, 'update']);
+    Route::delete('{id}', [OrderController::class, 'destroy']);
 });
