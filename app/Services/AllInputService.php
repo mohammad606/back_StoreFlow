@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\AllInput;
 use App\Models\AllInputItem;
 use App\Models\Store;
+use App\Models\StoreQuantityHistory;
 use App\Models\Customer;
 
 class AllInputService extends BaseService
@@ -49,8 +50,20 @@ class AllInputService extends BaseService
 
             $itemsData = collect($data['items'])->map(function ($item) use ($invoice, $products) {
                 $product = $products[$item['product_id']];
+                $oldQuantity = $product->quantity;
                 $product->quantity += $item['quantity'];
                 $product->save();
+
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => $item['quantity'],
+                    'change_type' => 'input',
+                    'reference_type' => 'AllInput',
+                    'reference_id' => $invoice->id,
+                    'user_id' => auth()->id(),
+                    'notes' => 'Added from input invoice #' . $invoice->id,
+                ]);
 
                 return [
                     'all_input_id' => $invoice->id,
@@ -110,8 +123,20 @@ class AllInputService extends BaseService
             foreach ($items as $item) {
                 $product = Store::find($item->product_id);
                 if ($product) {
+                    $oldQuantity = $product->quantity;
                     $product->quantity -= $item->quantity;
                     $product->save();
+
+                    StoreQuantityHistory::create([
+                        'store_id' => $product->id,
+                        'quantity' => $product->quantity,
+                        'change_amount' => -$item->quantity,
+                        'change_type' => 'input',
+                        'reference_type' => 'AllInput',
+                        'reference_id' => $invoice->id,
+                        'user_id' => auth()->id(),
+                        'notes' => 'Deleted input invoice #' . $invoice->id,
+                    ]);
                 }
             }
 
@@ -129,8 +154,21 @@ class AllInputService extends BaseService
         foreach ($deletedItems as $item) {
             $product = Store::find($item->product_id);
             if ($product) {
+                $oldQuantity = $product->quantity;
                 $product->quantity -= $item->quantity;
                 $product->save();
+
+
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => -$item->quantity,
+                    'change_type' => 'input',
+                    'reference_type' => 'AllInput',
+                    'reference_id' => $invoice->id,
+                    'user_id' => auth()->id(),
+                    'notes' => 'Removed from input invoice #' . $invoice->id,
+                ]);
             }
             $item->delete();
         }
@@ -157,8 +195,20 @@ class AllInputService extends BaseService
 
         $itemsData = collect($newItems)->map(function ($item) use ($invoice, $products) {
             $product = $products[$item['product_id']];
+            $oldQuantity = $product->quantity;
             $product->quantity += $item['quantity'];
             $product->save();
+
+            StoreQuantityHistory::create([
+                'store_id' => $product->id,
+                'quantity' => $product->quantity,
+                'change_amount' => $item['quantity'],
+                'change_type' => 'input',
+                'reference_type' => 'AllInput',
+                'reference_id' => $invoice->id,
+                'user_id' => auth()->id(),
+                'notes' => 'Added new item to input invoice #' . $invoice->id,
+            ]);
 
             return [
                 'all_input_id' => $invoice->id,
@@ -203,12 +253,38 @@ class AllInputService extends BaseService
                 $newQuantity = $updatedItem['quantity'] ?? $item->quantity;
 
                 if ($oldProduct) {
+                    $oldQuantityOldProduct = $oldProduct->quantity;
                     $oldProduct->quantity -= $item->quantity;
                     $oldProduct->save();
+
+
+                    StoreQuantityHistory::create([
+                        'store_id' => $oldProduct->id,
+                        'quantity' => $oldProduct->quantity,
+                        'change_amount' => -$item->quantity,
+                        'change_type' => 'input',
+                        'reference_type' => 'AllInput',
+                        'reference_id' => $invoice->id,
+                        'user_id' => auth()->id(),
+                        'notes' => 'Product changed in input invoice #' . $invoice->id,
+                    ]);
                 }
 
+                $oldQuantityNewProduct = $newProduct->quantity;
                 $newProduct->quantity += $newQuantity;
                 $newProduct->save();
+
+
+                StoreQuantityHistory::create([
+                    'store_id' => $newProduct->id,
+                    'quantity' => $newProduct->quantity,
+                    'change_amount' => $newQuantity,
+                    'change_type' => 'input',
+                    'reference_type' => 'AllInput',
+                    'reference_id' => $invoice->id,
+                    'user_id' => auth()->id(),
+                    'notes' => 'Product changed in input invoice #' . $invoice->id,
+                ]);
 
                 $item->product_id = $newProduct->id;
                 $item->name = $newProduct->name;
@@ -226,8 +302,21 @@ class AllInputService extends BaseService
 
                 $product = Store::find($item->product_id);
                 if ($product) {
+                    $oldQuantityProduct = $product->quantity;
                     $product->quantity += $difference;
                     $product->save();
+
+
+                    StoreQuantityHistory::create([
+                        'store_id' => $product->id,
+                        'quantity' => $product->quantity,
+                        'change_amount' => $difference,
+                        'change_type' => 'input',
+                        'reference_type' => 'AllInput',
+                        'reference_id' => $invoice->id,
+                        'user_id' => auth()->id(),
+                        'notes' => 'Quantity updated in input invoice #' . $invoice->id,
+                    ]);
                 }
             }
         }

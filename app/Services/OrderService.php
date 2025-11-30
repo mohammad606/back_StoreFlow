@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Store;
+use App\Models\StoreQuantityHistory;
 use App\Models\Customer;
 
 class OrderService extends BaseService
@@ -56,6 +57,18 @@ class OrderService extends BaseService
 
                 $product->quantity -= $item['quantity'];
                 $product->save();
+
+
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => -$item['quantity'],
+                    'change_type' => 'order',
+                    'reference_type' => 'Order',
+                    'reference_id' => $order->id,
+                    'user_id' => auth()->id(),
+                    'notes' => 'Sold in order #' . $order->id,
+                ]);
 
                 return [
                     'order_id' => $order->id,
@@ -117,6 +130,18 @@ class OrderService extends BaseService
                 if ($product) {
                     $product->quantity += $item->quantity;
                     $product->save();
+
+
+                    StoreQuantityHistory::create([
+                        'store_id' => $product->id,
+                        'quantity' => $product->quantity,
+                        'change_amount' => $item->quantity,
+                        'change_type' => 'order',
+                        'reference_type' => 'Order',
+                        'reference_id' => $order->id,
+                        'user_id' => auth()->id(),
+                        'notes' => 'Order #' . $order->id . ' deleted',
+                    ]);
                 }
             }
 
@@ -136,6 +161,18 @@ class OrderService extends BaseService
             if ($product) {
                 $product->quantity += $item->quantity;
                 $product->save();
+
+
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => $item->quantity,
+                    'change_type' => 'order',
+                    'reference_type' => 'Order',
+                    'reference_id' => $order->id,
+                    'user_id' => auth()->id(),
+                    'notes' => 'Item removed from order #' . $order->id,
+                ]);
             }
             $item->delete();
         }
@@ -169,6 +206,18 @@ class OrderService extends BaseService
 
             $product->quantity -= $item['quantity'];
             $product->save();
+
+
+            StoreQuantityHistory::create([
+                'store_id' => $product->id,
+                'quantity' => $product->quantity,
+                'change_amount' => -$item['quantity'],
+                'change_type' => 'order',
+                'reference_type' => 'Order',
+                'reference_id' => $order->id,
+                'user_id' => auth()->id(),
+                'notes' => 'New item added to order #' . $order->id,
+            ]);
 
             return [
                 'order_id' => $order->id,
@@ -215,6 +264,18 @@ class OrderService extends BaseService
                 if ($oldProduct) {
                     $oldProduct->quantity += $item->quantity;
                     $oldProduct->save();
+
+
+                    StoreQuantityHistory::create([
+                        'store_id' => $oldProduct->id,
+                        'quantity' => $oldProduct->quantity,
+                        'change_amount' => $item->quantity,
+                        'change_type' => 'order',
+                        'reference_type' => 'Order',
+                        'reference_id' => $order->id,
+                        'user_id' => auth()->id(),
+                        'notes' => 'Product changed in order #' . $order->id,
+                    ]);
                 }
 
                 if ($newProduct->quantity < $newQuantity) {
@@ -227,6 +288,18 @@ class OrderService extends BaseService
 
                 $newProduct->quantity -= $newQuantity;
                 $newProduct->save();
+
+
+                StoreQuantityHistory::create([
+                    'store_id' => $newProduct->id,
+                    'quantity' => $newProduct->quantity,
+                    'change_amount' => -$newQuantity,
+                    'change_type' => 'order',
+                    'reference_type' => 'Order',
+                    'reference_id' => $order->id,
+                    'user_id' => auth()->id(),
+                    'notes' => 'Product changed in order #' . $order->id,
+                ]);
 
                 $item->product_id = $newProduct->id;
                 $item->name = $newProduct->name;
@@ -247,6 +320,18 @@ class OrderService extends BaseService
 
                     $product->quantity -= $difference;
                     $product->save();
+
+
+                    StoreQuantityHistory::create([
+                        'store_id' => $product->id,
+                        'quantity' => $product->quantity,
+                        'change_amount' => -$difference,
+                        'change_type' => 'order',
+                        'reference_type' => 'Order',
+                        'reference_id' => $order->id,
+                        'user_id' => auth()->id(),
+                        'notes' => 'Quantity updated in order #' . $order->id,
+                    ]);
                 }
 
                 $item->quantity = $newQuantity;

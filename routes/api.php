@@ -36,6 +36,7 @@ Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
 Route::middleware('auth:api')->prefix('store')->group(function () {
     Route::get('/', [StoreController::class, 'index']);
     Route::post('/', [StoreController::class, 'store']);
+    Route::get('/{id}/quantity-history', [StoreController::class, 'getQuantityHistory']);
     Route::post('/{id}', [StoreController::class, 'update']);
     Route::delete('/{id}', [StoreController::class, 'destroy']);
 
@@ -68,3 +69,5 @@ Route::middleware('auth:api')->prefix('orders')->group(function () {
     Route::post('{id}', [OrderController::class, 'update']);
     Route::delete('{id}', [OrderController::class, 'destroy']);
 });
+
+
