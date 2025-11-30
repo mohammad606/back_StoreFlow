@@ -13,46 +13,16 @@ class AllInputService extends BaseService
     public function setModel(): void
     {
         $this->model = new AllInput();
+        $this->relationships = ['items'];
     }
 
-    public function getAll(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    protected function applySearch($query, $search)
     {
-        $query = $this->model->with('items');
-
-        if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
-            $query->where('user_id', auth()->id());
-        }
-
-        if (isset($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('noa', 'like', "%{$search}%")
-                    ->orWhere('customer_name', 'like', "%{$search}%")
-                    ->orWhere('date', 'like', "%{$search}%");
-            });
-        }
-
-        $sortBy = $filters['sortBy'] ?? 'date';
-        $sortOrder = $filters['sortOrder'] ?? 'desc';
-        $allowedSorts = ['date', 'noa', 'customer_name', 'id'];
-        if (!in_array($sortBy, $allowedSorts)) {
-            $sortBy = 'date';
-        }
-        $query->orderBy($sortBy, $sortOrder);
-
-        $perPage = $filters['perPage'] ?? 20;
-        return $query->paginate($perPage);
-    }
-
-    public function getById(int $id): AllInput
-    {
-        $query = $this->model->with('items');
-
-        if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
-            $query->where('user_id', auth()->id());
-        }
-
-        return $query->findOrFail($id);
+        $query->where(function ($q) use ($search) {
+            $q->where('noa', 'like', "%{$search}%")
+                ->orWhere('customer_name', 'like', "%{$search}%")
+                ->orWhere('date', 'like', "%{$search}%");
+        });
     }
 
     public function create(array $data): AllInput

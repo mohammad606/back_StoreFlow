@@ -8,6 +8,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 abstract class BaseService
 {
     protected Model $model;
+    protected array $relationships = [];
 
     public function __construct()
     {
@@ -18,7 +19,7 @@ abstract class BaseService
 
     public function getAll(array $filters = []): LengthAwarePaginator
     {
-        $query = $this->model->newQuery();
+        $query = $this->model->newQuery()->with($this->relationships);
 
         if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
             $query->where('user_id', auth()->id());
@@ -39,7 +40,7 @@ abstract class BaseService
 
     public function getById(int $id): Model
     {
-        $query = $this->model->newQuery();
+        $query = $this->model->newQuery()->with($this->relationships);
 
         if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
             $query->where('user_id', auth()->id());
