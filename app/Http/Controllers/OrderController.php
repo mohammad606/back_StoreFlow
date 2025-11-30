@@ -26,7 +26,7 @@ class OrderController extends Controller
                 'perPage' => $request->get('perPage', 20),
             ];
 
-            $orders = $this->orderService->getAllOrders($filters);
+            $orders = $this->orderService->getAll($filters);
 
             return ApiResponse::success($orders->items(), 'Orders retrieved successfully', $orders);
         } catch (\Exception $e) {
@@ -37,7 +37,7 @@ class OrderController extends Controller
     public function show($id)
     {
         try {
-            $order = $this->orderService->getOrderById($id);
+            $order = $this->orderService->getById($id);
 
             return ApiResponse::success($order, 'Order retrieved successfully');
         } catch (ModelNotFoundException $e) {
@@ -50,7 +50,7 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request)
     {
         try {
-            $order = $this->orderService->createOrder($request->validated());
+            $order = $this->orderService->create($request->validated());
 
             return ApiResponse::success($order, 'Order created successfully');
         } catch (\Exception $e) {
@@ -61,7 +61,7 @@ class OrderController extends Controller
     public function update(UpdateOrderRequest $request, $id)
     {
         try {
-            $order = $this->orderService->updateOrder($id, $request->validated());
+            $order = $this->orderService->update($id, $request->validated());
 
             return ApiResponse::success($order, 'Order updated successfully');
         } catch (ModelNotFoundException $e) {
@@ -74,7 +74,7 @@ class OrderController extends Controller
     public function destroy($id)
     {
         try {
-            $this->orderService->deleteOrder($id);
+            $this->orderService->delete($id);
 
             return ApiResponse::success([], 'Order deleted successfully');
         } catch (ModelNotFoundException $e) {

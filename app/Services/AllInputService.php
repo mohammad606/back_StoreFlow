@@ -7,14 +7,21 @@ use App\Models\AllInput;
 use App\Models\AllInputItem;
 use App\Models\Store;
 use App\Models\Customer;
-use Illuminate\Support\Collection;
 
-class AllInputService
+class AllInputService extends BaseService
 {
-    public function getAllInvoices(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function setModel(): void
     {
-        $query = AllInput::with('items')
-            ->where('user_id', auth()->id());
+        $this->model = new AllInput();
+    }
+
+    public function getAll(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $query = $this->model->with('items');
+
+        if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
+            $query->where('user_id', auth()->id());
+        }
 
         if (isset($filters['search'])) {
             $search = $filters['search'];
@@ -37,14 +44,18 @@ class AllInputService
         return $query->paginate($perPage);
     }
 
-    public function getInvoiceById(int $id): AllInput
+    public function getById(int $id): AllInput
     {
-        return AllInput::with('items')
-            ->where('user_id', auth()->id())
-            ->findOrFail($id);
+        $query = $this->model->with('items');
+
+        if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
+            $query->where('user_id', auth()->id());
+        }
+
+        return $query->findOrFail($id);
     }
 
-    public function createInvoice(array $data): AllInput
+    public function create(array $data): AllInput
     {
         return DB::transaction(function () use ($data) {
             $customer = Customer::findOrFail($data['customer_id']);
@@ -85,10 +96,10 @@ class AllInputService
         });
     }
 
-    public function updateInvoice(int $id, array $data): AllInput
+    public function update(int $id, array $data): AllInput
     {
         return DB::transaction(function () use ($id, $data) {
-            $invoice = AllInput::with('items')->where('user_id', auth()->id())->findOrFail($id);
+            $invoice = $this->getById($id);
 
             if (isset($data['date']))
                 $invoice->date = $data['date'];
@@ -119,10 +130,10 @@ class AllInputService
         });
     }
 
-    public function deleteInvoice(int $id): void
+    public function delete(int $id): void
     {
         DB::transaction(function () use ($id) {
-            $invoice = AllInput::with('items')->where('user_id', auth()->id())->findOrFail($id);
+            $invoice = $this->getById($id);
 
             $items = $invoice->items;
 
@@ -252,4 +263,3 @@ class AllInputService
         }
     }
 }
-

@@ -8,11 +8,20 @@ use App\Models\OrderItem;
 use App\Models\Store;
 use App\Models\Customer;
 
-class OrderService
+class OrderService extends BaseService
 {
-    public function getAllOrders(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function setModel(): void
     {
-        $query = Order::with('items')->where('user_id', auth()->id());
+        $this->model = new Order();
+    }
+
+    public function getAll(array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $query = $this->model->with('items');
+
+        if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
+            $query->where('user_id', auth()->id());
+        }
 
         if (isset($filters['search'])) {
             $search = $filters['search'];
@@ -35,13 +44,18 @@ class OrderService
         return $query->paginate($perPage);
     }
 
-    public function getOrderById(int $id): Order
+    public function getById(int $id): Order
     {
-        return Order::with('items')->where('user_id', auth()->id())
-            ->findOrFail($id);
+        $query = $this->model->with('items');
+
+        if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
+            $query->where('user_id', auth()->id());
+        }
+
+        return $query->findOrFail($id);
     }
 
-    public function createOrder(array $data): Order
+    public function create(array $data): Order
     {
         return DB::transaction(function () use ($data) {
             $customer = Customer::findOrFail($data['customer_id']);
@@ -87,11 +101,10 @@ class OrderService
         });
     }
 
-    public function updateOrder(int $id, array $data): Order
+    public function update(int $id, array $data): Order
     {
         return DB::transaction(function () use ($id, $data) {
-            $order = Order::with('items')->where('user_id', auth()->id())
-                ->findOrFail($id);
+            $order = $this->getById($id);
 
             if (isset($data['date']))
                 $order->date = $data['date'];
@@ -122,11 +135,10 @@ class OrderService
         });
     }
 
-    public function deleteOrder(int $id): void
+    public function delete(int $id): void
     {
         DB::transaction(function () use ($id) {
-            $order = Order::with('items')->where('user_id', auth()->id())
-                ->findOrFail($id);
+            $order = $this->getById($id);
 
             $items = $order->items;
 
@@ -236,7 +248,6 @@ class OrderService
                 }
 
                 if ($newProduct->quantity < $newQuantity) {
-
                     if ($oldProduct) {
                         $oldProduct->quantity -= $item->quantity;
                         $oldProduct->save();
@@ -260,12 +271,6 @@ class OrderService
 
                 $product = Store::find($item->product_id);
                 if ($product) {
-                    // If difference is positive (more items), we need to deduct more stock.
-                    // If difference is negative (less items), we need to restore stock.
-                    // Logic: product_qty -= difference. 
-                    // Example: old=5, new=8. diff=3. product_qty -= 3.
-                    // Example: old=5, new=2. diff=-3. product_qty -= -3 => product_qty += 3.
-
                     if ($difference > 0 && $product->quantity < $difference) {
                         throw new \Exception("Insufficient stock for product: {$product->name}");
                     }
