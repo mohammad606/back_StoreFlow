@@ -29,6 +29,12 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'status' => 'free_trial',
+            'device_id' => null,
+            'device_token' => null,
+            'trial_ends_at' => now()->addDays(7),
+            'subscription_starts_at' => null,
+            'subscription_ends_at' => null,
         ];
     }
 

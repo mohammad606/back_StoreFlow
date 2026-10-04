@@ -9,6 +9,7 @@ use App\Http\Controllers\AllInputController;
 use App\Http\Controllers\OrderController;
 
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
+    Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
     Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
     //---------------------------------------------------------------------------------------------------------------
     Route::middleware('auth:api')->group(function () {
@@ -26,6 +27,7 @@ Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
             Route::post('/users', [AdminController::class, 'store'])->name('users.store');
             Route::get('/users', [AdminController::class, 'index'])->name('users.index');
             Route::delete('/users/{id}', [AdminController::class, 'destroy'])->name('users.destroy');
+            Route::patch('/users/{id}/access', [AdminController::class, 'updateAccess'])->name('users.access');
 
         });
 

@@ -28,6 +28,42 @@ class AdminController extends Controller
 
         return ApiResponse::success($user, 'User created successfully');
     }
+
+    public function updateAccess(Request $request, $id)
+    {
+        $request->validate([
+            'status' => ['required', 'string', 'in:free_trial,active,blocked'],
+            'subscription_starts_at' => ['nullable', 'date'],
+            'subscription_ends_at' => ['nullable', 'date', 'after_or_equal:subscription_starts_at'],
+        ]);
+
+        $user = User::findOrFail($id);
+
+        if ($request->status === 'active') {
+            $user->status = 'active';
+            $user->subscription_starts_at = $request->filled('subscription_starts_at')
+                ? $request->subscription_starts_at
+                : now();
+            $user->subscription_ends_at = $request->filled('subscription_ends_at')
+                ? $request->subscription_ends_at
+                : now()->addDays(30);
+            $user->trial_ends_at = null;
+        } elseif ($request->status === 'free_trial') {
+            $user->status = 'free_trial';
+            $user->trial_ends_at = now()->addDays(7);
+            $user->subscription_starts_at = null;
+            $user->subscription_ends_at = null;
+        } else {
+            $user->status = 'blocked';
+            $user->subscription_starts_at = null;
+            $user->subscription_ends_at = null;
+            $user->trial_ends_at = null;
+        }
+
+        $user->save();
+
+        return ApiResponse::success($user, 'User access updated successfully');
+    }
     //---------------------------------------------------------------------------------------------------------------
     public function index(Request $request)
     {
