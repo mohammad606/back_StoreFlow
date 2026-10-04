@@ -53,7 +53,7 @@ class AdminController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if (auth()->id() === $user->id) {
+        if (auth('api')->id() === $user->id) {
             return ApiResponse::error('You cannot delete your own account', 403);
         }
 

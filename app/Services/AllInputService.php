@@ -43,7 +43,7 @@ class AllInputService extends BaseService
                 'noa' => $data['noa'],
                 'customer_id' => $customer->id,
                 'customer_name' => $customer->name,
-                'user_id' => auth()->id(),
+                'user_id' => $this->currentUserId(),
             ]);
 
             $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
@@ -61,7 +61,7 @@ class AllInputService extends BaseService
                     'change_type' => 'input',
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->currentUserId(),
                     'notes' => 'Added from input invoice #' . $invoice->id,
                 ]);
 
@@ -134,7 +134,7 @@ class AllInputService extends BaseService
                         'change_type' => 'input',
                         'reference_type' => 'AllInput',
                         'reference_id' => $invoice->id,
-                        'user_id' => auth()->id(),
+                        'user_id' => $this->currentUserId(),
                         'notes' => 'Deleted input invoice #' . $invoice->id,
                     ]);
                 }
@@ -166,7 +166,7 @@ class AllInputService extends BaseService
                     'change_type' => 'input',
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->currentUserId(),
                     'notes' => 'Removed from input invoice #' . $invoice->id,
                 ]);
             }
@@ -206,7 +206,7 @@ class AllInputService extends BaseService
                 'change_type' => 'input',
                 'reference_type' => 'AllInput',
                 'reference_id' => $invoice->id,
-                'user_id' => auth()->id(),
+                'user_id' => $this->currentUserId(),
                 'notes' => 'Added new item to input invoice #' . $invoice->id,
             ]);
 
@@ -265,7 +265,7 @@ class AllInputService extends BaseService
                         'change_type' => 'input',
                         'reference_type' => 'AllInput',
                         'reference_id' => $invoice->id,
-                        'user_id' => auth()->id(),
+                        'user_id' => $this->currentUserId(),
                         'notes' => 'Product changed in input invoice #' . $invoice->id,
                     ]);
                 }
@@ -282,7 +282,7 @@ class AllInputService extends BaseService
                     'change_type' => 'input',
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->currentUserId(),
                     'notes' => 'Product changed in input invoice #' . $invoice->id,
                 ]);
 
@@ -314,7 +314,7 @@ class AllInputService extends BaseService
                         'change_type' => 'input',
                         'reference_type' => 'AllInput',
                         'reference_id' => $invoice->id,
-                        'user_id' => auth()->id(),
+                        'user_id' => $this->currentUserId(),
                         'notes' => 'Quantity updated in input invoice #' . $invoice->id,
                     ]);
                 }

@@ -22,7 +22,7 @@ class StoreService extends BaseService
     public function create(array $data): Store
     {
         return DB::transaction(function () use ($data) {
-            $data['user_id'] = auth()->id();
+            $data['user_id'] = $this->currentUserId();
 
             $product = Store::create($data);
 
@@ -31,7 +31,7 @@ class StoreService extends BaseService
                 'quantity' => $data['quantity'],
                 'change_amount' => $data['quantity'],
                 'change_type' => 'initial',
-                'user_id' => auth()->id(),
+                'user_id' => $this->currentUserId(),
                 'notes' => 'Initial quantity',
             ]);
 
@@ -54,7 +54,7 @@ class StoreService extends BaseService
                     'quantity' => $data['quantity'],
                     'change_amount' => $changeAmount,
                     'change_type' => 'manual_update',
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->currentUserId(),
                     'notes' => 'Manual quantity update',
                 ]);
             }

@@ -43,7 +43,7 @@ class OrderService extends BaseService
                 'noa' => $data['noa'],
                 'customer_id' => $customer->id,
                 'customer_name' => $customer->name,
-                'user_id' => auth()->id(),
+                'user_id' => $this->currentUserId(),
             ]);
 
             $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
@@ -66,7 +66,7 @@ class OrderService extends BaseService
                     'change_type' => 'order',
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->currentUserId(),
                     'notes' => 'Sold in order #' . $order->id,
                 ]);
 
@@ -139,7 +139,7 @@ class OrderService extends BaseService
                         'change_type' => 'order',
                         'reference_type' => 'Order',
                         'reference_id' => $order->id,
-                        'user_id' => auth()->id(),
+                        'user_id' => $this->currentUserId(),
                         'notes' => 'Order #' . $order->id . ' deleted',
                     ]);
                 }
@@ -170,7 +170,7 @@ class OrderService extends BaseService
                     'change_type' => 'order',
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->currentUserId(),
                     'notes' => 'Item removed from order #' . $order->id,
                 ]);
             }
@@ -215,7 +215,7 @@ class OrderService extends BaseService
                 'change_type' => 'order',
                 'reference_type' => 'Order',
                 'reference_id' => $order->id,
-                'user_id' => auth()->id(),
+                'user_id' => $this->currentUserId(),
                 'notes' => 'New item added to order #' . $order->id,
             ]);
 
@@ -273,7 +273,7 @@ class OrderService extends BaseService
                         'change_type' => 'order',
                         'reference_type' => 'Order',
                         'reference_id' => $order->id,
-                        'user_id' => auth()->id(),
+                        'user_id' => $this->currentUserId(),
                         'notes' => 'Product changed in order #' . $order->id,
                     ]);
                 }
@@ -297,7 +297,7 @@ class OrderService extends BaseService
                     'change_type' => 'order',
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->currentUserId(),
                     'notes' => 'Product changed in order #' . $order->id,
                 ]);
 
@@ -329,7 +329,7 @@ class OrderService extends BaseService
                         'change_type' => 'order',
                         'reference_type' => 'Order',
                         'reference_id' => $order->id,
-                        'user_id' => auth()->id(),
+                        'user_id' => $this->currentUserId(),
                         'notes' => 'Quantity updated in order #' . $order->id,
                     ]);
                 }

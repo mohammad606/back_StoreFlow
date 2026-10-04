@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 abstract class BaseService
 {
@@ -17,12 +19,23 @@ abstract class BaseService
 
     abstract public function setModel(): void;
 
+    protected function currentUserId(): int
+    {
+        $userId = Auth::guard('api')->id();
+
+        if ($userId === null) {
+            throw new AuthenticationException('Unauthenticated.');
+        }
+
+        return (int) $userId;
+    }
+
     public function getAll(array $filters = []): LengthAwarePaginator
     {
         $query = $this->model->newQuery()->with($this->relationships);
 
         if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
-            $query->where('user_id', auth()->id());
+            $query->where('user_id', $this->currentUserId());
         }
 
         if (isset($filters['search'])) {
@@ -43,7 +56,7 @@ abstract class BaseService
         $query = $this->model->newQuery()->with($this->relationships);
 
         if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
-            $query->where('user_id', auth()->id());
+            $query->where('user_id', $this->currentUserId());
         }
 
         return $query->findOrFail($id);
@@ -52,8 +65,9 @@ abstract class BaseService
     public function create(array $data): Model
     {
         if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
-            $data['user_id'] = auth()->id();
+            $data['user_id'] = $this->currentUserId();
         }
+
         return $this->model->create($data);
     }
 
@@ -72,7 +86,6 @@ abstract class BaseService
 
     protected function applySearch($query, $search)
     {
-
         if (\Schema::hasColumn($this->model->getTable(), 'name')) {
             $query->where('name', 'like', "%{$search}%");
         }

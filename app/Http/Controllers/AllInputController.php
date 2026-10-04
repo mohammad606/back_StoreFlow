@@ -84,16 +84,4 @@ class AllInputController extends Controller
         }
     }
 
-    public function getInvoiceById($id)
-    {
-        try {
-            $invoice = $this->allInputService->getById($id);
-
-            return ApiResponse::success($invoice, 'Invoice retrieved successfully');
-        } catch (ModelNotFoundException $e) {
-            return ApiResponse::error('Invoice not found', 404);
-        } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(), 500);
-        }
-    }
 }

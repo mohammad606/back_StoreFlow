@@ -21,7 +21,7 @@ class CustomerService extends BaseService
         $query = $this->model->newQuery();
 
         if (\Schema::hasColumn($this->model->getTable(), 'user_id')) {
-            $query->where('user_id', auth()->id());
+            $query->where('user_id', $this->currentUserId());
         }
 
         if (isset($filters['search'])) {
