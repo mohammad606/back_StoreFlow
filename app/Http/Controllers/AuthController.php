@@ -3,36 +3,33 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateNameRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8',
-            'device_id' => 'required|string|max:255',
-        ]);
+        $data = $request->validated();
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
             'status' => 'free_trial',
-            'device_id' => $request->device_id,
+            'device_id' => $data['device_id'],
             'trial_ends_at' => now()->addDays(7),
             'role' => 'user',
         ]);
 
         $guard = Auth::guard('api');
         $token = $guard->attempt([
-            'email' => $request->email,
-            'password' => $request->password,
+            'email' => $data['email'],
+            'password' => $data['password'],
         ]);
 
         if (!$token) {
@@ -50,14 +47,9 @@ class AuthController extends Controller
         ], 'Trial account created successfully');
     }
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string'
-        ]);
-
-        $credentials = $request->only('email', 'password');
+        $credentials = $request->validated();
 
         $guard = Auth::guard('api');
         if (!$token = $guard->attempt($credentials)) {
@@ -106,15 +98,12 @@ class AuthController extends Controller
         return ApiResponse::success(Auth::guard('api')->user(), 'Current user');
     }
     //---------------------------------------------------------------------------------------------------------------
-    public function updateName(Request $request)
+    public function updateName(UpdateNameRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
         try {
+            $data = $request->validated();
             $user = Auth::guard('api')->user();
-            $user->name = $request->name;
+            $user->name = $data['name'];
             $user->save();
 
             return ApiResponse::success([

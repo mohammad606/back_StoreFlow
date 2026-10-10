@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\StoreService;
 use App\Http\Requests\Store\StoreStoreRequest;
 use App\Http\Requests\Store\UpdateStoreRequest;
+use App\Http\Requests\Store\QuantityHistoryRequest;
 use App\Helpers\ApiResponse;
 
 class StoreController extends Controller
@@ -75,18 +76,13 @@ class StoreController extends Controller
         }
     }
 
-    public function getQuantityHistory(Request $request, $id)
+    public function getQuantityHistory(QuantityHistoryRequest $request, $id)
     {
         try {
-            $request->validate([
-                'start_date' => 'nullable|date',
-                'end_date' => 'nullable|date|after_or_equal:start_date',
-            ]);
-
             $data = $this->storeService->getQuantityHistory(
                 $id,
-                $request->get('start_date'),
-                $request->get('end_date')
+                $request->validated('start_date'),
+                $request->validated('end_date')
             );
 
             return ApiResponse::success($data, 'Quantity history retrieved successfully');

@@ -2,32 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\AdminAccessEnum;
+use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserAccessRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Helpers\ApiResponse;
-use Illuminate\Validation\Rule;
 
 
 class AdminController extends Controller
 {
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8',
-            'role' => 'sometimes|string|in:admin,user'
-        ]);
+        $data = $request->validated();
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role ?? 'user',
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $data['role'] ?? 'user',
         ]);
 
         return ApiResponse::success($user, 'User created successfully');
