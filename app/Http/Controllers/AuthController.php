@@ -29,7 +29,8 @@ class AuthController extends Controller
             'role' => 'user',
         ]);
 
-        $token = Auth::attempt([
+        $guard = Auth::guard('api');
+        $token = $guard->attempt([
             'email' => $request->email,
             'password' => $request->password,
         ]);
@@ -58,12 +59,24 @@ class AuthController extends Controller
 
         $credentials = $request->only('email', 'password');
 
-        if (!$token = Auth::attempt($credentials)) {
+        $guard = Auth::guard('api');
+        if (!$token = $guard->attempt($credentials)) {
             return ApiResponse::error('Unauthorized', 401);
         }
 
+        $user = $guard->user();
+
+        if ($user->role !== 'admin' && !$user->hasValidAccessPeriod()) {
+            $status = $user->evaluateStatus();
+            $guard->logout();
+
+            return ApiResponse::error('Account access is blocked or expired.', 403, [
+                'status' => $status,
+            ]);
+        }
+
         return ApiResponse::success([
-            'user' => Auth::user(),
+            'user' => $user,
             'auth' => [
                 'token' => $token,
                 'type' => 'bearer'
@@ -73,16 +86,16 @@ class AuthController extends Controller
     //---------------------------------------------------------------------------------------------------------------
     public function logout()
     {
-        Auth::logout();
+        Auth::guard('api')->logout();
         return ApiResponse::success([], 'Successfully logged out');
     }
     //---------------------------------------------------------------------------------------------------------------
     public function refresh()
     {
         return ApiResponse::success([
-            'user' => Auth::user(),
+            'user' => Auth::guard('api')->user(),
             'auth' => [
-                'token' => Auth::refresh(),
+                'token' => Auth::guard('api')->refresh(),
                 'type' => 'bearer'
             ]
         ], 'Token refreshed');
@@ -90,7 +103,7 @@ class AuthController extends Controller
     //---------------------------------------------------------------------------------------------------------------
     public function me()
     {
-        return ApiResponse::success(Auth::user(), 'Current user');
+        return ApiResponse::success(Auth::guard('api')->user(), 'Current user');
     }
     //---------------------------------------------------------------------------------------------------------------
     public function updateName(Request $request)
@@ -100,7 +113,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            $user = Auth::user();
+            $user = Auth::guard('api')->user();
             $user->name = $request->name;
             $user->save();
 

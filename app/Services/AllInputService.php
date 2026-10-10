@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Collection;
 use App\Models\AllInput;
 use App\Models\AllInputItem;
 use App\Models\Store;
 use App\Models\StoreQuantityHistory;
 use App\Models\Customer;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AllInputService extends BaseService
 {
@@ -29,7 +31,8 @@ class AllInputService extends BaseService
     public function create(array $data): AllInput
     {
         return DB::transaction(function () use ($data) {
-            $customer = Customer::findOrFail($data['customer_id']);
+            $customer = Customer::where('user_id', $this->currentUserId())
+                ->findOrFail($data['customer_id']);
 
             $productIds = collect($data['items'])->pluck('product_id')->toArray();
             $uniqueProductIds = array_unique($productIds);
@@ -46,7 +49,7 @@ class AllInputService extends BaseService
                 'user_id' => $this->currentUserId(),
             ]);
 
-            $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
+            $products = $this->ownedProducts($productIds);
 
             $itemsData = collect($data['items'])->map(function ($item) use ($invoice, $products) {
                 $product = $products[$item['product_id']];
@@ -91,7 +94,8 @@ class AllInputService extends BaseService
             if (isset($data['noa']))
                 $invoice->noa = $data['noa'];
             if (isset($data['customer_id'])) {
-                $customer = Customer::findOrFail($data['customer_id']);
+                $customer = Customer::where('user_id', $this->currentUserId())
+                    ->findOrFail($data['customer_id']);
                 $invoice->customer_id = $customer->id;
                 $invoice->customer_name = $customer->name;
             }
@@ -121,23 +125,20 @@ class AllInputService extends BaseService
             $items = $invoice->items;
 
             foreach ($items as $item) {
-                $product = Store::find($item->product_id);
-                if ($product) {
-                    $oldQuantity = $product->quantity;
-                    $product->quantity -= $item->quantity;
-                    $product->save();
+                $product = $this->ownedProduct($item->product_id);
+                $product->quantity -= $item->quantity;
+                $product->save();
 
-                    StoreQuantityHistory::create([
-                        'store_id' => $product->id,
-                        'quantity' => $product->quantity,
-                        'change_amount' => -$item->quantity,
-                        'change_type' => 'input',
-                        'reference_type' => 'AllInput',
-                        'reference_id' => $invoice->id,
-                        'user_id' => $this->currentUserId(),
-                        'notes' => 'Deleted input invoice #' . $invoice->id,
-                    ]);
-                }
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => -$item->quantity,
+                    'change_type' => 'input',
+                    'reference_type' => 'AllInput',
+                    'reference_id' => $invoice->id,
+                    'user_id' => $this->currentUserId(),
+                    'notes' => 'Deleted input invoice #' . $invoice->id,
+                ]);
             }
 
             $invoice->items()->delete();
@@ -152,24 +153,21 @@ class AllInputService extends BaseService
             ->get();
 
         foreach ($deletedItems as $item) {
-            $product = Store::find($item->product_id);
-            if ($product) {
-                $oldQuantity = $product->quantity;
-                $product->quantity -= $item->quantity;
-                $product->save();
+            $product = $this->ownedProduct($item->product_id);
+            $product->quantity -= $item->quantity;
+            $product->save();
 
 
-                StoreQuantityHistory::create([
-                    'store_id' => $product->id,
-                    'quantity' => $product->quantity,
-                    'change_amount' => -$item->quantity,
-                    'change_type' => 'input',
-                    'reference_type' => 'AllInput',
-                    'reference_id' => $invoice->id,
-                    'user_id' => $this->currentUserId(),
-                    'notes' => 'Removed from input invoice #' . $invoice->id,
-                ]);
-            }
+            StoreQuantityHistory::create([
+                'store_id' => $product->id,
+                'quantity' => $product->quantity,
+                'change_amount' => -$item->quantity,
+                'change_type' => 'input',
+                'reference_type' => 'AllInput',
+                'reference_id' => $invoice->id,
+                'user_id' => $this->currentUserId(),
+                'notes' => 'Removed from input invoice #' . $invoice->id,
+            ]);
             $item->delete();
         }
         $invoice->load('items');
@@ -191,7 +189,7 @@ class AllInputService extends BaseService
         }
 
         $productIds = collect($newItems)->pluck('product_id');
-        $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
+        $products = $this->ownedProducts($productIds->all());
 
         $itemsData = collect($newItems)->map(function ($item) use ($invoice, $products) {
             $product = $products[$item['product_id']];
@@ -248,27 +246,24 @@ class AllInputService extends BaseService
                     throw new \Exception('Cannot update multiple items to the same product');
                 }
 
-                $oldProduct = Store::find($item->product_id);
-                $newProduct = Store::findOrFail($updatedItem['product_id']);
+                $oldProduct = $this->ownedProduct($item->product_id);
+                $newProduct = $this->ownedProduct($updatedItem['product_id']);
                 $newQuantity = $updatedItem['quantity'] ?? $item->quantity;
 
-                if ($oldProduct) {
-                    $oldQuantityOldProduct = $oldProduct->quantity;
-                    $oldProduct->quantity -= $item->quantity;
-                    $oldProduct->save();
+                $oldProduct->quantity -= $item->quantity;
+                $oldProduct->save();
 
 
-                    StoreQuantityHistory::create([
-                        'store_id' => $oldProduct->id,
-                        'quantity' => $oldProduct->quantity,
-                        'change_amount' => -$item->quantity,
-                        'change_type' => 'input',
-                        'reference_type' => 'AllInput',
-                        'reference_id' => $invoice->id,
-                        'user_id' => $this->currentUserId(),
-                        'notes' => 'Product changed in input invoice #' . $invoice->id,
-                    ]);
-                }
+                StoreQuantityHistory::create([
+                    'store_id' => $oldProduct->id,
+                    'quantity' => $oldProduct->quantity,
+                    'change_amount' => -$item->quantity,
+                    'change_type' => 'input',
+                    'reference_type' => 'AllInput',
+                    'reference_id' => $invoice->id,
+                    'user_id' => $this->currentUserId(),
+                    'notes' => 'Product changed in input invoice #' . $invoice->id,
+                ]);
 
                 $oldQuantityNewProduct = $newProduct->quantity;
                 $newProduct->quantity += $newQuantity;
@@ -300,25 +295,41 @@ class AllInputService extends BaseService
                 $item->quantity = $newQuantity;
                 $item->save();
 
-                $product = Store::find($item->product_id);
-                if ($product) {
-                    $oldQuantityProduct = $product->quantity;
-                    $product->quantity += $difference;
-                    $product->save();
+                $product = $this->ownedProduct($item->product_id);
+                $product->quantity += $difference;
+                $product->save();
 
 
-                    StoreQuantityHistory::create([
-                        'store_id' => $product->id,
-                        'quantity' => $product->quantity,
-                        'change_amount' => $difference,
-                        'change_type' => 'input',
-                        'reference_type' => 'AllInput',
-                        'reference_id' => $invoice->id,
-                        'user_id' => $this->currentUserId(),
-                        'notes' => 'Quantity updated in input invoice #' . $invoice->id,
-                    ]);
-                }
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => $difference,
+                    'change_type' => 'input',
+                    'reference_type' => 'AllInput',
+                    'reference_id' => $invoice->id,
+                    'user_id' => $this->currentUserId(),
+                    'notes' => 'Quantity updated in input invoice #' . $invoice->id,
+                ]);
             }
         }
+    }
+
+    private function ownedProduct(int $id): Store
+    {
+        return Store::where('user_id', $this->currentUserId())->findOrFail($id);
+    }
+
+    private function ownedProducts(array $ids): Collection
+    {
+        $products = Store::where('user_id', $this->currentUserId())
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+
+        if ($products->count() !== count(array_unique($ids))) {
+            throw (new ModelNotFoundException())->setModel(Store::class);
+        }
+
+        return $products;
     }
 }

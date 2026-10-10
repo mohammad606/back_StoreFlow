@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Order;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreOrderRequest extends FormRequest
 {
@@ -17,13 +18,18 @@ class StoreOrderRequest extends FormRequest
             'date' => 'required|date',
             'sender' => 'required|string|max:50',
             'noa' => 'required|string|max:50',
-            'customer_id' => 'required|exists:customers,id',
+            'customer_id' => [
+                'required',
+                Rule::exists('customers', 'id')->where('user_id', $this->user('api')->getAuthIdentifier()),
+            ],
             'customer_name' => 'required|string|max:50',
             'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:store,id',
+            'items.*.product_id' => [
+                'required',
+                Rule::exists('store', 'id')->where('user_id', $this->user('api')->getAuthIdentifier()),
+            ],
             'items.*.name' => 'required|string|max:50',
             'items.*.quantity' => 'required|integer|min:1',
         ];
     }
 }
-

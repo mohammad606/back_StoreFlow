@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Collection;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Store;
 use App\Models\StoreQuantityHistory;
 use App\Models\Customer;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class OrderService extends BaseService
 {
@@ -29,7 +31,8 @@ class OrderService extends BaseService
     public function create(array $data): Order
     {
         return DB::transaction(function () use ($data) {
-            $customer = Customer::findOrFail($data['customer_id']);
+            $customer = Customer::where('user_id', $this->currentUserId())
+                ->findOrFail($data['customer_id']);
 
             $productIds = collect($data['items'])->pluck('product_id')->toArray();
             $uniqueProductIds = array_unique($productIds);
@@ -46,7 +49,7 @@ class OrderService extends BaseService
                 'user_id' => $this->currentUserId(),
             ]);
 
-            $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
+            $products = $this->ownedProducts($productIds);
 
             $itemsData = collect($data['items'])->map(function ($item) use ($order, $products) {
                 $product = $products[$item['product_id']];
@@ -96,7 +99,8 @@ class OrderService extends BaseService
             if (isset($data['noa']))
                 $order->noa = $data['noa'];
             if (isset($data['customer_id'])) {
-                $customer = Customer::findOrFail($data['customer_id']);
+                $customer = Customer::where('user_id', $this->currentUserId())
+                    ->findOrFail($data['customer_id']);
                 $order->customer_id = $customer->id;
                 $order->customer_name = $customer->name;
             }
@@ -126,23 +130,21 @@ class OrderService extends BaseService
             $items = $order->items;
 
             foreach ($items as $item) {
-                $product = Store::find($item->product_id);
-                if ($product) {
-                    $product->quantity += $item->quantity;
-                    $product->save();
+                $product = $this->ownedProduct($item->product_id);
+                $product->quantity += $item->quantity;
+                $product->save();
 
 
-                    StoreQuantityHistory::create([
-                        'store_id' => $product->id,
-                        'quantity' => $product->quantity,
-                        'change_amount' => $item->quantity,
-                        'change_type' => 'order',
-                        'reference_type' => 'Order',
-                        'reference_id' => $order->id,
-                        'user_id' => $this->currentUserId(),
-                        'notes' => 'Order #' . $order->id . ' deleted',
-                    ]);
-                }
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => $item->quantity,
+                    'change_type' => 'order',
+                    'reference_type' => 'Order',
+                    'reference_id' => $order->id,
+                    'user_id' => $this->currentUserId(),
+                    'notes' => 'Order #' . $order->id . ' deleted',
+                ]);
             }
 
             $order->items()->delete();
@@ -157,23 +159,21 @@ class OrderService extends BaseService
             ->get();
 
         foreach ($deletedItems as $item) {
-            $product = Store::find($item->product_id);
-            if ($product) {
-                $product->quantity += $item->quantity;
-                $product->save();
+            $product = $this->ownedProduct($item->product_id);
+            $product->quantity += $item->quantity;
+            $product->save();
 
 
-                StoreQuantityHistory::create([
-                    'store_id' => $product->id,
-                    'quantity' => $product->quantity,
-                    'change_amount' => $item->quantity,
-                    'change_type' => 'order',
-                    'reference_type' => 'Order',
-                    'reference_id' => $order->id,
-                    'user_id' => $this->currentUserId(),
-                    'notes' => 'Item removed from order #' . $order->id,
-                ]);
-            }
+            StoreQuantityHistory::create([
+                'store_id' => $product->id,
+                'quantity' => $product->quantity,
+                'change_amount' => $item->quantity,
+                'change_type' => 'order',
+                'reference_type' => 'Order',
+                'reference_id' => $order->id,
+                'user_id' => $this->currentUserId(),
+                'notes' => 'Item removed from order #' . $order->id,
+            ]);
             $item->delete();
         }
         $order->load('items');
@@ -195,7 +195,7 @@ class OrderService extends BaseService
         }
 
         $productIds = collect($newItems)->pluck('product_id');
-        $products = Store::whereIn('id', $productIds)->get()->keyBy('id');
+        $products = $this->ownedProducts($productIds->all());
 
         $itemsData = collect($newItems)->map(function ($item) use ($order, $products) {
             $product = $products[$item['product_id']];
@@ -257,32 +257,28 @@ class OrderService extends BaseService
                     throw new \Exception('Cannot update multiple items to the same product');
                 }
 
-                $oldProduct = Store::find($item->product_id);
-                $newProduct = Store::findOrFail($updatedItem['product_id']);
+                $oldProduct = $this->ownedProduct($item->product_id);
+                $newProduct = $this->ownedProduct($updatedItem['product_id']);
                 $newQuantity = $updatedItem['quantity'] ?? $item->quantity;
 
-                if ($oldProduct) {
-                    $oldProduct->quantity += $item->quantity;
-                    $oldProduct->save();
+                $oldProduct->quantity += $item->quantity;
+                $oldProduct->save();
 
 
-                    StoreQuantityHistory::create([
-                        'store_id' => $oldProduct->id,
-                        'quantity' => $oldProduct->quantity,
-                        'change_amount' => $item->quantity,
-                        'change_type' => 'order',
-                        'reference_type' => 'Order',
-                        'reference_id' => $order->id,
-                        'user_id' => $this->currentUserId(),
-                        'notes' => 'Product changed in order #' . $order->id,
-                    ]);
-                }
+                StoreQuantityHistory::create([
+                    'store_id' => $oldProduct->id,
+                    'quantity' => $oldProduct->quantity,
+                    'change_amount' => $item->quantity,
+                    'change_type' => 'order',
+                    'reference_type' => 'Order',
+                    'reference_id' => $order->id,
+                    'user_id' => $this->currentUserId(),
+                    'notes' => 'Product changed in order #' . $order->id,
+                ]);
 
                 if ($newProduct->quantity < $newQuantity) {
-                    if ($oldProduct) {
-                        $oldProduct->quantity -= $item->quantity;
-                        $oldProduct->save();
-                    }
+                    $oldProduct->quantity -= $item->quantity;
+                    $oldProduct->save();
                     throw new \Exception("Insufficient stock for product: {$newProduct->name}");
                 }
 
@@ -312,31 +308,48 @@ class OrderService extends BaseService
                 $newQuantity = $updatedItem['quantity'];
                 $difference = $newQuantity - $oldQuantity;
 
-                $product = Store::find($item->product_id);
-                if ($product) {
-                    if ($difference > 0 && $product->quantity < $difference) {
-                        throw new \Exception("Insufficient stock for product: {$product->name}");
-                    }
-
-                    $product->quantity -= $difference;
-                    $product->save();
-
-
-                    StoreQuantityHistory::create([
-                        'store_id' => $product->id,
-                        'quantity' => $product->quantity,
-                        'change_amount' => -$difference,
-                        'change_type' => 'order',
-                        'reference_type' => 'Order',
-                        'reference_id' => $order->id,
-                        'user_id' => $this->currentUserId(),
-                        'notes' => 'Quantity updated in order #' . $order->id,
-                    ]);
+                $product = $this->ownedProduct($item->product_id);
+                if ($difference > 0 && $product->quantity < $difference) {
+                    throw new \Exception("Insufficient stock for product: {$product->name}");
                 }
+
+                $product->quantity -= $difference;
+                $product->save();
+
+
+                StoreQuantityHistory::create([
+                    'store_id' => $product->id,
+                    'quantity' => $product->quantity,
+                    'change_amount' => -$difference,
+                    'change_type' => 'order',
+                    'reference_type' => 'Order',
+                    'reference_id' => $order->id,
+                    'user_id' => $this->currentUserId(),
+                    'notes' => 'Quantity updated in order #' . $order->id,
+                ]);
 
                 $item->quantity = $newQuantity;
                 $item->save();
             }
         }
+    }
+
+    private function ownedProduct(int $id): Store
+    {
+        return Store::where('user_id', $this->currentUserId())->findOrFail($id);
+    }
+
+    private function ownedProducts(array $ids): Collection
+    {
+        $products = Store::where('user_id', $this->currentUserId())
+            ->whereIn('id', $ids)
+            ->get()
+            ->keyBy('id');
+
+        if ($products->count() !== count(array_unique($ids))) {
+            throw (new ModelNotFoundException())->setModel(Store::class);
+        }
+
+        return $products;
     }
 }
