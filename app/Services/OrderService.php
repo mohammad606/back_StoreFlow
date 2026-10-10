@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\StockMovementTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use App\Models\Order;
@@ -66,7 +67,7 @@ class OrderService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $product->quantity,
                     'change_amount' => -$item['quantity'],
-                    'change_type' => 'order',
+                    'change_type' => StockMovementTypeEnum::Order,
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
                     'user_id' => $this->currentUserId(),
@@ -139,7 +140,7 @@ class OrderService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $product->quantity,
                     'change_amount' => $item->quantity,
-                    'change_type' => 'order',
+                    'change_type' => StockMovementTypeEnum::Order,
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
                     'user_id' => $this->currentUserId(),
@@ -168,7 +169,7 @@ class OrderService extends BaseService
                 'store_id' => $product->id,
                 'quantity' => $product->quantity,
                 'change_amount' => $item->quantity,
-                'change_type' => 'order',
+                'change_type' => StockMovementTypeEnum::Order,
                 'reference_type' => 'Order',
                 'reference_id' => $order->id,
                 'user_id' => $this->currentUserId(),
@@ -212,7 +213,7 @@ class OrderService extends BaseService
                 'store_id' => $product->id,
                 'quantity' => $product->quantity,
                 'change_amount' => -$item['quantity'],
-                'change_type' => 'order',
+                'change_type' => StockMovementTypeEnum::Order,
                 'reference_type' => 'Order',
                 'reference_id' => $order->id,
                 'user_id' => $this->currentUserId(),
@@ -269,7 +270,7 @@ class OrderService extends BaseService
                     'store_id' => $oldProduct->id,
                     'quantity' => $oldProduct->quantity,
                     'change_amount' => $item->quantity,
-                    'change_type' => 'order',
+                    'change_type' => StockMovementTypeEnum::Order,
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
                     'user_id' => $this->currentUserId(),
@@ -290,7 +291,7 @@ class OrderService extends BaseService
                     'store_id' => $newProduct->id,
                     'quantity' => $newProduct->quantity,
                     'change_amount' => -$newQuantity,
-                    'change_type' => 'order',
+                    'change_type' => StockMovementTypeEnum::Order,
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
                     'user_id' => $this->currentUserId(),
@@ -321,7 +322,7 @@ class OrderService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $product->quantity,
                     'change_amount' => -$difference,
-                    'change_type' => 'order',
+                    'change_type' => StockMovementTypeEnum::Order,
                     'reference_type' => 'Order',
                     'reference_id' => $order->id,
                     'user_id' => $this->currentUserId(),

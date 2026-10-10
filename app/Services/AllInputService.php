@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\StockMovementTypeEnum;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
 use App\Models\AllInput;
@@ -61,7 +62,7 @@ class AllInputService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $product->quantity,
                     'change_amount' => $item['quantity'],
-                    'change_type' => 'input',
+                    'change_type' => StockMovementTypeEnum::Input,
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
                     'user_id' => $this->currentUserId(),
@@ -133,7 +134,7 @@ class AllInputService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $product->quantity,
                     'change_amount' => -$item->quantity,
-                    'change_type' => 'input',
+                    'change_type' => StockMovementTypeEnum::Input,
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
                     'user_id' => $this->currentUserId(),
@@ -162,7 +163,7 @@ class AllInputService extends BaseService
                 'store_id' => $product->id,
                 'quantity' => $product->quantity,
                 'change_amount' => -$item->quantity,
-                'change_type' => 'input',
+                'change_type' => StockMovementTypeEnum::Input,
                 'reference_type' => 'AllInput',
                 'reference_id' => $invoice->id,
                 'user_id' => $this->currentUserId(),
@@ -201,7 +202,7 @@ class AllInputService extends BaseService
                 'store_id' => $product->id,
                 'quantity' => $product->quantity,
                 'change_amount' => $item['quantity'],
-                'change_type' => 'input',
+                'change_type' => StockMovementTypeEnum::Input,
                 'reference_type' => 'AllInput',
                 'reference_id' => $invoice->id,
                 'user_id' => $this->currentUserId(),
@@ -258,7 +259,7 @@ class AllInputService extends BaseService
                     'store_id' => $oldProduct->id,
                     'quantity' => $oldProduct->quantity,
                     'change_amount' => -$item->quantity,
-                    'change_type' => 'input',
+                    'change_type' => StockMovementTypeEnum::Input,
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
                     'user_id' => $this->currentUserId(),
@@ -274,7 +275,7 @@ class AllInputService extends BaseService
                     'store_id' => $newProduct->id,
                     'quantity' => $newProduct->quantity,
                     'change_amount' => $newQuantity,
-                    'change_type' => 'input',
+                    'change_type' => StockMovementTypeEnum::Input,
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
                     'user_id' => $this->currentUserId(),
@@ -304,7 +305,7 @@ class AllInputService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $product->quantity,
                     'change_amount' => $difference,
-                    'change_type' => 'input',
+                    'change_type' => StockMovementTypeEnum::Input,
                     'reference_type' => 'AllInput',
                     'reference_id' => $invoice->id,
                     'user_id' => $this->currentUserId(),

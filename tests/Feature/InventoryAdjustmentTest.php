@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\StockMovementTypeEnum;
 use App\Models\InventoryAdjustment;
 use App\Models\Store;
 use App\Models\StoreQuantityHistory;
@@ -45,7 +46,8 @@ it('creates a balanced inventory adjustment and records stock history', function
         ->and($adjustment->items->sum('quantity_change'))->toBe(0)
         ->and(StoreQuantityHistory::where('reference_type', 'InventoryAdjustment')
             ->where('reference_id', $adjustment->id)
-            ->count())->toBe(2);
+            ->count())->toBe(2)
+        ->and(StoreQuantityHistory::first()->change_type)->toBe(StockMovementTypeEnum::InventoryAdjustment);
 });
 
 it('rejects an adjustment whose quantity changes do not balance', function () {

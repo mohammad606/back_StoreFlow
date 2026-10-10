@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\UserRoleEnum;
 use App\Helpers\ApiResponse;
 use Closure;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class EnsureAccountAccess
             return ApiResponse::error('Unauthenticated.', 401);
         }
 
-        if ($user->role !== 'admin' && !$user->hasValidAccessPeriod()) {
+        if ($user->role !== UserRoleEnum::Admin && !$user->hasValidAccessPeriod()) {
             return ApiResponse::error('Account access is blocked or expired.', 403, [
                 'status' => $user->evaluateStatus(),
             ]);

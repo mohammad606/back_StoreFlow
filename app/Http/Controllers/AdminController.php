@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRoleEnum;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserAccessRequest;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class AdminController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role' => $data['role'] ?? 'user',
+            'role' => $data['role'] ?? UserRoleEnum::User,
         ]);
 
         return ApiResponse::success($user, 'User created successfully');

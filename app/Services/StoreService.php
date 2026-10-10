@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\StockMovementTypeEnum;
 use Illuminate\Support\Facades\DB;
 use App\Models\Store;
 use App\Models\StoreQuantityHistory;
@@ -30,7 +31,7 @@ class StoreService extends BaseService
                 'store_id' => $product->id,
                 'quantity' => $data['quantity'],
                 'change_amount' => $data['quantity'],
-                'change_type' => 'initial',
+                'change_type' => StockMovementTypeEnum::Initial,
                 'user_id' => $this->currentUserId(),
                 'notes' => 'Initial quantity',
             ]);
@@ -53,7 +54,7 @@ class StoreService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $data['quantity'],
                     'change_amount' => $changeAmount,
-                    'change_type' => 'manual_update',
+                    'change_type' => StockMovementTypeEnum::ManualUpdate,
                     'user_id' => $this->currentUserId(),
                     'notes' => 'Manual quantity update',
                 ]);

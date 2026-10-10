@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Enums\UserStatusEnum;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -18,7 +19,7 @@ it('creates a trial user with a device identifier and expiry date', function () 
     $user = User::first();
 
     expect($user)->not->toBeNull()
-        ->and($user->status)->toBe('free_trial')
+        ->and($user->status)->toBe(UserStatusEnum::FreeTrial)
         ->and($user->device_id)->toBe('device-123')
         ->and($user->trial_ends_at)->not->toBeNull();
 });
@@ -43,7 +44,7 @@ it('allows an admin to update the active subscription date range for a user', fu
 
     $user->refresh();
 
-    expect($user->status)->toBe('active')
+    expect($user->status)->toBe(UserStatusEnum::Active)
         ->and($user->subscription_starts_at)->not->toBeNull()
         ->and($user->subscription_ends_at)->not->toBeNull();
 });

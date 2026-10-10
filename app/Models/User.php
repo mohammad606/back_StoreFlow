@@ -2,6 +2,8 @@
 
 namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRoleEnum;
+use App\Enums\UserStatusEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,9 +14,9 @@ class User extends Authenticatable implements JWTSubject
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    public const STATUS_FREE_TRIAL = 'free_trial';
-    public const STATUS_ACTIVE = 'active';
-    public const STATUS_BLOCKED = 'blocked';
+    public const STATUS_FREE_TRIAL = UserStatusEnum::FreeTrial->value;
+    public const STATUS_ACTIVE = UserStatusEnum::Active->value;
+    public const STATUS_BLOCKED = UserStatusEnum::Blocked->value;
 
     /**
      * The attributes that are mass assignable.
@@ -54,6 +56,8 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRoleEnum::class,
+            'status' => UserStatusEnum::class,
             'trial_ends_at' => 'datetime',
             'subscription_starts_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
@@ -62,22 +66,22 @@ class User extends Authenticatable implements JWTSubject
 
     public function isFreeTrial(): bool
     {
-        return $this->status === self::STATUS_FREE_TRIAL;
+        return $this->status === UserStatusEnum::FreeTrial;
     }
 
     public function isActive(): bool
     {
-        return $this->status === self::STATUS_ACTIVE;
+        return $this->status === UserStatusEnum::Active;
     }
 
     public function isBlocked(): bool
     {
-        return $this->status === self::STATUS_BLOCKED;
+        return $this->status === UserStatusEnum::Blocked;
     }
 
     public function hasValidAccessPeriod(): bool
     {
-        if ($this->status === self::STATUS_ACTIVE) {
+        if ($this->status === UserStatusEnum::Active) {
             if (!$this->subscription_starts_at || !$this->subscription_ends_at) {
                 return false;
             }
@@ -85,7 +89,7 @@ class User extends Authenticatable implements JWTSubject
             return now()->between($this->subscription_starts_at, $this->subscription_ends_at);
         }
 
-        if ($this->status === self::STATUS_FREE_TRIAL) {
+        if ($this->status === UserStatusEnum::FreeTrial) {
             return $this->trial_ends_at ? now()->lt($this->trial_ends_at) : false;
         }
 
@@ -94,15 +98,15 @@ class User extends Authenticatable implements JWTSubject
 
     public function evaluateStatus(): string
     {
-        if ($this->status === self::STATUS_BLOCKED) {
+        if ($this->status === UserStatusEnum::Blocked) {
             return self::STATUS_BLOCKED;
         }
 
-        if ($this->status === self::STATUS_ACTIVE && $this->hasValidAccessPeriod()) {
+        if ($this->status === UserStatusEnum::Active && $this->hasValidAccessPeriod()) {
             return self::STATUS_ACTIVE;
         }
 
-        if ($this->status === self::STATUS_FREE_TRIAL && $this->trial_ends_at && now()->lt($this->trial_ends_at)) {
+        if ($this->status === UserStatusEnum::FreeTrial && $this->trial_ends_at && now()->lt($this->trial_ends_at)) {
             return self::STATUS_FREE_TRIAL;
         }
 

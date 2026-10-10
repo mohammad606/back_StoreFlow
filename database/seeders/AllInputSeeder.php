@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AllInputTypeEnum;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Store;
@@ -44,7 +45,7 @@ class AllInputSeeder extends Seeder
                 try {
                     $service->create([
                         'date' => now()->subDays(rand(0, 30))->format('Y-m-d'),
-                        'type' => rand(0, 1) ? 'production' : 'return',
+                        'type' => rand(0, 1) ? AllInputTypeEnum::Production : AllInputTypeEnum::Return,
                         'noa' => 'NOA-' . Str::upper(Str::random(6)),
                         'customer_id' => $customer->id,
                         'items' => $items,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\AllInput;
 
+use App\Enums\AllInputTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,7 +17,7 @@ class StoreAllInputRequest extends FormRequest
     {
         return [
             'date' => 'required|date',
-            'type' => 'required|in:production,return',
+            'type' => ['required', Rule::in(AllInputTypeEnum::values())],
             'noa' => 'required|string|max:50',
             'customer_id' => [
                 'required',

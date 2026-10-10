@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\StockMovementTypeEnum;
 use App\Models\InventoryAdjustment;
 use App\Models\Store;
 use App\Models\StoreQuantityHistory;
@@ -61,7 +62,7 @@ class InventoryAdjustmentService extends BaseService
                     'store_id' => $product->id,
                     'quantity' => $product->quantity,
                     'change_amount' => $change,
-                    'change_type' => 'inventory_adjustment',
+                    'change_type' => StockMovementTypeEnum::InventoryAdjustment,
                     'reference_type' => 'InventoryAdjustment',
                     'reference_id' => $adjustment->id,
                     'user_id' => $userId,
@@ -266,7 +267,7 @@ class InventoryAdjustmentService extends BaseService
             'store_id' => $product->id,
             'quantity' => $product->quantity,
             'change_amount' => $change,
-            'change_type' => 'inventory_adjustment',
+            'change_type' => StockMovementTypeEnum::InventoryAdjustment,
             'reference_type' => 'InventoryAdjustment',
             'reference_id' => $adjustment->id,
             'user_id' => $this->currentUserId(),

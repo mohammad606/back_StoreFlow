@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\AllInputTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class AllInput extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'type' => AllInputTypeEnum::class,
+    ];
 
     protected $fillable = ['date', 'type', 'noa', 'customer_id','user_id', 'customer_name'];
 

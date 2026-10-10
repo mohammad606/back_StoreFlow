@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRoleEnum;
+use App\Enums\UserStatusEnum;
 use App\Helpers\ApiResponse;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -20,10 +22,10 @@ class AuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
-            'status' => 'free_trial',
+            'status' => UserStatusEnum::FreeTrial,
             'device_id' => $data['device_id'],
             'trial_ends_at' => now()->addDays(7),
-            'role' => 'user',
+            'role' => UserRoleEnum::User,
         ]);
 
         $guard = Auth::guard('api');
@@ -58,7 +60,7 @@ class AuthController extends Controller
 
         $user = $guard->user();
 
-        if ($user->role !== 'admin' && !$user->hasValidAccessPeriod()) {
+        if ($user->role !== UserRoleEnum::Admin && !$user->hasValidAccessPeriod()) {
             $status = $user->evaluateStatus();
             $guard->logout();
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AllInputTypeEnum;
 use App\Models\AllInput;
 use App\Models\Customer;
 use App\Models\Order;
@@ -81,7 +82,8 @@ it('allows users to create orders and inputs with their own customers and produc
     ])->assertOk();
 
     expect(Order::where('user_id', $user->id)->count())->toBe(1)
-        ->and(AllInput::where('user_id', $user->id)->count())->toBe(1);
+        ->and(AllInput::where('user_id', $user->id)->count())->toBe(1)
+        ->and(AllInput::where('user_id', $user->id)->first()->type)->toBe(AllInputTypeEnum::Production);
 });
 
 it('enforces customer and product ownership in order and input services', function () {

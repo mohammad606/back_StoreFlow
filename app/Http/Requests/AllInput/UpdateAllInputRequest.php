@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\AllInput;
 
+use App\Enums\AllInputTypeEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,7 +17,7 @@ class UpdateAllInputRequest extends FormRequest
     {
         return [
             'date' => 'sometimes|date',
-            'type' => 'sometimes|in:production,return',
+            'type' => ['sometimes', Rule::in(AllInputTypeEnum::values())],
             'noa' => 'sometimes|string|max:50',
             'customer_id' => [
                 'sometimes',

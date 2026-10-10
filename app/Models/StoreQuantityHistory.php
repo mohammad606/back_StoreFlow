@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StockMovementTypeEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -23,6 +24,7 @@ class StoreQuantityHistory extends Model
     ];
 
     protected $casts = [
+        'change_type' => StockMovementTypeEnum::class,
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
