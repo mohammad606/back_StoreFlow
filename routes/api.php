@@ -7,6 +7,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AllInputController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\InventoryAdjustmentController;
 
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
@@ -41,7 +42,7 @@ Route::middleware(['auth:api', 'account.access'])->prefix('store')->group(functi
     Route::get('/', [StoreController::class, 'index']);
     Route::post('/', [StoreController::class, 'store']);
     Route::get('/{id}/quantity-history', [StoreController::class, 'getQuantityHistory']);
-    Route::post('/{id}', [StoreController::class, 'update']);
+    Route::put('/{id}', [StoreController::class, 'update']);
     Route::delete('/{id}', [StoreController::class, 'destroy']);
 
 });
@@ -51,7 +52,7 @@ Route::middleware(['auth:api', 'account.access'])->prefix('store')->group(functi
 Route::middleware(['auth:api', 'account.access'])->prefix('customers')->group(function () {
     Route::get('/', [CustomerController::class, 'index']);
     Route::post('/', [CustomerController::class, 'store']);
-    Route::post('/{id}', [CustomerController::class, 'update']);
+    Route::put('/{id}', [CustomerController::class, 'update']);
     Route::delete('/{id}', [CustomerController::class, 'destroy']);
 
 });
@@ -62,7 +63,7 @@ Route::middleware(['auth:api', 'account.access'])->prefix('inputs')->group(funct
     Route::get('/', [AllInputController::class, 'index']);
     Route::post('/', [AllInputController::class, 'store']);
     Route::get('/{id}', [AllInputController::class, 'show']);
-    Route::post('/{id}', [AllInputController::class, 'update']);
+    Route::put('/{id}', [AllInputController::class, 'update']);
     Route::delete('/{id}', [AllInputController::class, 'destroy']);
 });
 
@@ -70,7 +71,14 @@ Route::middleware(['auth:api', 'account.access'])->prefix('orders')->group(funct
     Route::get('/', [OrderController::class, 'index']);
     Route::post('/', [OrderController::class, 'store']);
     Route::get('{id}', [OrderController::class, 'show']);
-    Route::post('{id}', [OrderController::class, 'update']);
+    Route::put('{id}', [OrderController::class, 'update']);
     Route::delete('{id}', [OrderController::class, 'destroy']);
 });
 
+Route::middleware(['auth:api', 'account.access'])->prefix('adjustments')->group(function () {
+    Route::get('/', [InventoryAdjustmentController::class, 'index']);
+    Route::post('/', [InventoryAdjustmentController::class, 'store']);
+    Route::get('/{id}', [InventoryAdjustmentController::class, 'show']);
+    Route::put('/{id}', [InventoryAdjustmentController::class, 'update']);
+    Route::delete('/{id}', [InventoryAdjustmentController::class, 'destroy']);
+});

@@ -1,10 +1,14 @@
 <?php
+
 namespace App\Http\Controllers;
 
+use App\AdminAccessEnum;
+use App\Http\Requests\User\UpdateUserAccessRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Helpers\ApiResponse;
+use Illuminate\Validation\Rule;
 
 
 class AdminController extends Controller
@@ -29,41 +33,15 @@ class AdminController extends Controller
         return ApiResponse::success($user, 'User created successfully');
     }
 
-    public function updateAccess(Request $request, $id)
+    public function updateAccess(UpdateUserAccessRequest $request, $id)
     {
-        $request->validate([
-            'status' => ['required', 'string', 'in:free_trial,active,blocked'],
-            'subscription_starts_at' => ['nullable', 'date'],
-            'subscription_ends_at' => ['nullable', 'date', 'after_or_equal:subscription_starts_at'],
-        ]);
-
         $user = User::findOrFail($id);
 
-        if ($request->status === 'active') {
-            $user->status = 'active';
-            $user->subscription_starts_at = $request->filled('subscription_starts_at')
-                ? $request->subscription_starts_at
-                : now();
-            $user->subscription_ends_at = $request->filled('subscription_ends_at')
-                ? $request->subscription_ends_at
-                : now()->addDays(30);
-            $user->trial_ends_at = null;
-        } elseif ($request->status === 'free_trial') {
-            $user->status = 'free_trial';
-            $user->trial_ends_at = now()->addDays(7);
-            $user->subscription_starts_at = null;
-            $user->subscription_ends_at = null;
-        } else {
-            $user->status = 'blocked';
-            $user->subscription_starts_at = null;
-            $user->subscription_ends_at = null;
-            $user->trial_ends_at = null;
-        }
-
-        $user->save();
+        $user->update($request->validated());
 
         return ApiResponse::success($user, 'User access updated successfully');
     }
+
     //---------------------------------------------------------------------------------------------------------------
     public function index(Request $request)
     {
@@ -82,8 +60,9 @@ class AdminController extends Controller
         $perPage = $request->get('perPage', 10);
         $users = $query->paginate($perPage);
 
-        return ApiResponse::success($users->items(), 'Users retrieved successfully', $users);
+        return ApiResponse::success($users, 'Users retrieved successfully');
     }
+
     //---------------------------------------------------------------------------------------------------------------
     public function destroy($id)
     {
