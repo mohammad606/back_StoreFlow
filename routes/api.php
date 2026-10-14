@@ -8,6 +8,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\AllInputController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\InventoryAdjustmentController;
+use App\Http\Controllers\DashboardController;
 
 Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
@@ -82,4 +83,8 @@ Route::middleware(['auth:api', 'account.access'])->prefix('adjustments')->group(
     Route::get('/{id}', [InventoryAdjustmentController::class, 'show']);
     Route::put('/{id}', [InventoryAdjustmentController::class, 'update']);
     Route::delete('/{id}', [InventoryAdjustmentController::class, 'destroy']);
+});
+
+Route::middleware(['auth:api', 'account.access'])->prefix('dashboard')->group(function () {
+    Route::get('/summary', [DashboardController::class, 'summary']);
 });
