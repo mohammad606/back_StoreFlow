@@ -34,6 +34,13 @@ class OrderController extends Controller
         }
     }
 
+    public function topSellingProducts()
+    {
+        $products = $this->orderService->getTopSellingProducts();
+
+        return ApiResponse::success($products, 'Top selling products retrieved successfully');
+    }
+
     public function show($id)
     {
         try {

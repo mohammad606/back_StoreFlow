@@ -70,6 +70,7 @@ Route::middleware(['auth:api', 'account.access'])->prefix('inputs')->group(funct
 Route::middleware(['auth:api', 'account.access'])->prefix('orders')->group(function () {
     Route::get('/', [OrderController::class, 'index']);
     Route::post('/', [OrderController::class, 'store']);
+    Route::get('/top-selling-products', [OrderController::class, 'topSellingProducts']);
     Route::get('{id}', [OrderController::class, 'show']);
     Route::put('{id}', [OrderController::class, 'update']);
     Route::delete('{id}', [OrderController::class, 'destroy']);

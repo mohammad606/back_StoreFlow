@@ -9,7 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Store;
 use App\Models\StoreQuantityHistory;
 use App\Models\Customer;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Collection;
 
 class OrderService extends BaseService
 {
@@ -26,6 +26,29 @@ class OrderService extends BaseService
                 ->orWhere('customer_name', 'like', "%{$search}%")
                 ->orWhere('date', 'like', "%{$search}%");
         });
+    }
+
+    public function getTopSellingProducts(): Collection
+    {
+        $userId = $this->currentUserId();
+
+        return Store::query()
+            ->join('order_items', 'order_items.product_id', '=', 'store.id')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.user_id', $userId)
+            ->where('store.user_id', $userId)
+            ->select([
+                'store.id',
+                'store.name',
+                'store.quantity',
+                'store.box',
+                DB::raw('SUM(order_items.quantity) as sold_quantity'),
+            ])
+            ->groupBy('store.id', 'store.name', 'store.quantity', 'store.box')
+            ->orderByDesc('sold_quantity')
+            ->orderBy('store.id')
+            ->limit(6)
+            ->get();
     }
 
     public function create(array $data): Order
