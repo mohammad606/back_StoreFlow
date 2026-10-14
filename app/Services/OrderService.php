@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Enums\StockMovementTypeEnum;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Collection;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Store;
@@ -36,10 +35,7 @@ class OrderService extends BaseService
                 ->findOrFail($data['customer_id']);
 
             $productIds = collect($data['items'])->pluck('product_id')->toArray();
-            $uniqueProductIds = array_unique($productIds);
-            if (count($productIds) !== count($uniqueProductIds)) {
-                throw new \Exception('Cannot add duplicate products in the order');
-            }
+            $this->ensureUniqueProductIds($productIds, 'order');
 
             $order = Order::create([
                 'date' => $data['date'],
@@ -185,10 +181,7 @@ class OrderService extends BaseService
         $existingProductIds = $order->items->pluck('product_id')->toArray();
 
         $newProductIds = collect($newItems)->pluck('product_id')->toArray();
-        $duplicatesInNew = array_diff_assoc($newProductIds, array_unique($newProductIds));
-        if (!empty($duplicatesInNew)) {
-            throw new \Exception('Cannot add duplicate products in new_items');
-        }
+        $this->ensureUniqueProductIds($newProductIds, 'new_items');
 
         $duplicatesWithExisting = array_intersect($newProductIds, $existingProductIds);
         if (!empty($duplicatesWithExisting)) {
@@ -335,22 +328,4 @@ class OrderService extends BaseService
         }
     }
 
-    private function ownedProduct(int $id): Store
-    {
-        return Store::where('user_id', $this->currentUserId())->findOrFail($id);
-    }
-
-    private function ownedProducts(array $ids): Collection
-    {
-        $products = Store::where('user_id', $this->currentUserId())
-            ->whereIn('id', $ids)
-            ->get()
-            ->keyBy('id');
-
-        if ($products->count() !== count(array_unique($ids))) {
-            throw (new ModelNotFoundException())->setModel(Store::class);
-        }
-
-        return $products;
-    }
 }

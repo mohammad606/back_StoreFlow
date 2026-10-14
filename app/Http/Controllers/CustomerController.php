@@ -21,9 +21,9 @@ class CustomerController extends Controller
         try {
             $filters = [
                 'search' => $request->get('search'),
-                'sortBy' => $request->get('sortBy', 'name'),
-                'sortOrder' => $request->get('sortOrder', 'asc'),
-                'perPage' => $request->get('perPage', 20),
+                'sort_by' => $request->get('sort_by', $request->get('sortBy', 'name')),
+                'sort_order' => $request->get('sort_order', $request->get('sortOrder', 'asc')),
+                'per_page' => $request->get('per_page', $request->get('perPage', 20)),
             ];
 
             $customers = $this->customerService->getAll($filters);

@@ -48,12 +48,12 @@ class AdminController extends Controller
                     ->orWhere('email', 'like', "%$search%");
             });
         }
-        $sortBy = $request->get('sortBy', 'id');
-        $sortOrder = $request->get('sortOrder', 'desc');
+        $sortBy = $request->get('sort_by', $request->get('sortBy', 'id'));
+        $sortOrder = $request->get('sort_order', $request->get('sortOrder', 'desc'));
         $query->orderBy($sortBy, $sortOrder);
 
-        $perPage = $request->get('perPage', 10);
-        $users = $query->paginate($perPage);
+        $perPage = $request->get('per_page', $request->get('perPage', 10));
+        $users = $query->paginate((int) $perPage);
 
         return ApiResponse::success($users, 'Users retrieved successfully');
     }

@@ -21,9 +21,9 @@ class AllInputController extends Controller
         try {
             $filters = [
                 'search' => $request->get('search'),
-                'sortBy' => $request->get('sortBy', 'date'),
-                'sortOrder' => $request->get('sortOrder', 'desc'),
-                'perPage' => $request->get('perPage', 20),
+                'sort_by' => $request->get('sort_by', $request->get('sortBy', 'date')),
+                'sort_order' => $request->get('sort_order', $request->get('sortOrder', 'desc')),
+                'per_page' => $request->get('per_page', $request->get('perPage', 20)),
             ];
 
             $invoices = $this->allInputService->getAll($filters);

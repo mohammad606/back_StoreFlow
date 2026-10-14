@@ -28,17 +28,10 @@ class CustomerService extends BaseService
             $this->applySearch($query, $filters['search']);
         }
 
-        $sortBy = $filters['sortBy'] ?? 'name';
-        $sortOrder = $filters['sortOrder'] ?? 'asc';
-        $allowedSorts = ['id', 'name', 'phone'];
+        $normalized = $this->normalizeListFilters($filters, ['id', 'name', 'phone'], 'name', 'asc');
 
-        if (!in_array($sortBy, $allowedSorts)) {
-            $sortBy = 'name';
-        }
+        $query->orderBy($normalized['sort_by'], $normalized['sort_order']);
 
-        $query->orderBy($sortBy, $sortOrder);
-
-        $perPage = $filters['perPage'] ?? 20;
-        return $query->paginate($perPage);
+        return $query->paginate($normalized['per_page']);
     }
 }
