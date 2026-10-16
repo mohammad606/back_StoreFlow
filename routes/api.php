@@ -7,7 +7,10 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryAdjustmentController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\RepresentativeAuthController;
 use App\Http\Controllers\RepresentativeController;
+use App\Http\Controllers\RepresentativeInvoiceController;
+use App\Http\Controllers\RepresentativePortalController;
 use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 
@@ -90,6 +93,26 @@ Route::middleware(['auth:api', 'account.access'])->prefix('adjustments')->group(
 
 Route::middleware(['auth:api', 'account.access'])->prefix('dashboard')->group(function () {
     Route::get('/summary', [DashboardController::class, 'summary']);
+});
+
+Route::prefix('representative')->group(function () {
+    Route::post('/auth/login', [RepresentativeAuthController::class, 'login'])
+        ->middleware('throttle:5,1');
+
+    Route::middleware(['auth:representative-api', 'representative.access'])->group(function () {
+        Route::post('/auth/logout', [RepresentativeAuthController::class, 'logout']);
+        Route::get('/auth/me', [RepresentativeAuthController::class, 'me']);
+        Route::get('/inventory', [RepresentativePortalController::class, 'inventory']);
+        Route::get('/customers', [RepresentativePortalController::class, 'customers']);
+        Route::get('/invoices', [RepresentativePortalController::class, 'invoices']);
+        Route::post('/invoices', [RepresentativePortalController::class, 'storeInvoice']);
+    });
+});
+
+Route::middleware(['auth:api', 'account.access'])->prefix('representative-invoices')->group(function () {
+    Route::get('/', [RepresentativeInvoiceController::class, 'index']);
+    Route::post('/{id}/approve', [RepresentativeInvoiceController::class, 'approve']);
+    Route::post('/{id}/reject', [RepresentativeInvoiceController::class, 'reject']);
 });
 
 Route::middleware(['auth:api', 'account.access'])->prefix('representatives')->group(function () {

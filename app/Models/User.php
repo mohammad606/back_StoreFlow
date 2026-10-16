@@ -80,6 +80,11 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Representative::class);
     }
 
+    public function representativeInvoices(): HasMany
+    {
+        return $this->hasMany(RepresentativeInvoice::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === UserStatusEnum::Active;
