@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\StoreService;
+use App\Http\Requests\IndexStoreRequest;
 use App\Http\Requests\Store\StoreStoreRequest;
 use App\Http\Requests\Store\UpdateStoreRequest;
 use App\Http\Requests\Store\QuantityHistoryRequest;
@@ -16,20 +16,14 @@ class StoreController extends Controller
     ) {
     }
 
-    public function index(Request $request)
+    public function index(IndexStoreRequest $request)
     {
         try {
-            $filters = [
-                'search' => $request->get('search'),
-                'sort_by' => $request->get('sort_by', $request->get('sortBy', 'name')),
-                'sort_order' => $request->get('sort_order', $request->get('sortOrder', 'asc')),
-                'per_page' => $request->get('per_page', $request->get('perPage', 20)),
-            ];
-
-            $allowedSorts = ['id', 'name', 'quantity'];
-            if (! in_array($filters['sort_by'], $allowedSorts, true)) {
-                $filters['sort_by'] = 'name';
-            }
+            $filters = array_merge([
+                'sort_by' => 'name',
+                'sort_order' => 'asc',
+                'per_page' => 20,
+            ], $request->validated());
 
             $products = $this->storeService->getAll($filters);
 

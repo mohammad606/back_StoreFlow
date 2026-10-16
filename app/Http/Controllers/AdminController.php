@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\UserRoleEnum;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserAccessRequest;
-use Illuminate\Http\Request;
+use App\Http\Requests\IndexAdminUsersRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Helpers\ApiResponse;
@@ -38,22 +38,28 @@ class AdminController extends Controller
     }
 
     //---------------------------------------------------------------------------------------------------------------
-    public function index(Request $request)
+    public function index(IndexAdminUsersRequest $request)
     {
+        $filters = array_merge([
+            'sort_by' => 'id',
+            'sort_order' => 'desc',
+            'per_page' => 10,
+        ], $request->validated());
+        $filters['sort_by'] ??= 'id';
+        $filters['sort_order'] ??= 'desc';
+        $filters['per_page'] ??= 10;
+
         $query = User::query();
-        if ($request->has('search') && !empty($request->search)) {
-            $search = $request->search;
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%")
                     ->orWhere('email', 'like', "%$search%");
             });
         }
-        $sortBy = $request->get('sort_by', $request->get('sortBy', 'id'));
-        $sortOrder = $request->get('sort_order', $request->get('sortOrder', 'desc'));
-        $query->orderBy($sortBy, $sortOrder);
+        $query->orderBy($filters['sort_by'], $filters['sort_order']);
 
-        $perPage = $request->get('per_page', $request->get('perPage', 10));
-        $users = $query->paginate((int) $perPage);
+        $users = $query->paginate($filters['per_page']);
 
         return ApiResponse::success($users, 'Users retrieved successfully');
     }

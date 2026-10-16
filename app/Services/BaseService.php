@@ -48,10 +48,14 @@ abstract class BaseService
             $sortBy = $defaultSort;
         }
 
+        if (! in_array($sortOrder, ['asc', 'desc'], true)) {
+            $sortOrder = $defaultOrder;
+        }
+
         return [
             'sort_by' => $sortBy,
             'sort_order' => $sortOrder,
-            'per_page' => max(1, $perPage),
+            'per_page' => min(100, max(1, $perPage)),
         ];
     }
 
@@ -97,7 +101,12 @@ abstract class BaseService
             $this->applySearch($query, $filters['search']);
         }
 
-        $normalized = $this->normalizeListFilters($filters, ['id', 'name', 'date', 'created_at', 'quantity'], 'created_at', 'desc');
+        $normalized = $this->normalizeListFilters(
+            $filters,
+            ['id', 'name', 'date', 'created_at', 'quantity', 'noa', 'type', 'sender', 'customer_name', 'phone'],
+            'created_at',
+            'desc'
+        );
 
         $query->orderBy($normalized['sort_by'], $normalized['sort_order']);
 

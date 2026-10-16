@@ -2,24 +2,18 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class IndexInventoryAdjustmentsRequest extends FormRequest
+class IndexInventoryAdjustmentsRequest extends IndexQueryRequest
 {
-    public function authorize(): bool
+    protected function allowedSortColumns(): array
     {
-        return true;
+        return ['date', 'id', 'created_at'];
     }
 
     public function rules(): array
     {
-        return [
-            'search' => ['nullable', 'string', 'max:255'],
+        return array_merge(parent::rules(), [
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'sort_by' => ['nullable', 'in:date,id,created_at'],
-            'sort_order' => ['nullable', 'in:asc,desc'],
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
-        ];
+        ]);
     }
 }

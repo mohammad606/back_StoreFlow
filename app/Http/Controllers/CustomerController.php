@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\CustomerService;
+use App\Http\Requests\IndexCustomerRequest;
 use App\Http\Requests\Customer\StoreCustomerRequest;
 use App\Http\Requests\Customer\UpdateCustomerRequest;
 use App\Helpers\ApiResponse;
@@ -16,15 +16,14 @@ class CustomerController extends Controller
     ) {
     }
 
-    public function index(Request $request)
+    public function index(IndexCustomerRequest $request)
     {
         try {
-            $filters = [
-                'search' => $request->get('search'),
-                'sort_by' => $request->get('sort_by', $request->get('sortBy', 'name')),
-                'sort_order' => $request->get('sort_order', $request->get('sortOrder', 'asc')),
-                'per_page' => $request->get('per_page', $request->get('perPage', 20)),
-            ];
+            $filters = array_merge([
+                'sort_by' => 'name',
+                'sort_order' => 'asc',
+                'per_page' => 20,
+            ], $request->validated());
 
             $customers = $this->customerService->getAll($filters);
 

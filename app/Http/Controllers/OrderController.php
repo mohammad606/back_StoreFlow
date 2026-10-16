@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Requests\IndexOrderRequest;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Http\Requests\Order\UpdateOrderRequest;
 use App\Services\OrderService;
@@ -16,15 +16,14 @@ class OrderController extends Controller
     ) {
     }
 
-    public function index(Request $request)
+    public function index(IndexOrderRequest $request)
     {
         try {
-            $filters = [
-                'search' => $request->get('search'),
-                'sort_by' => $request->get('sort_by', $request->get('sortBy', 'date')),
-                'sort_order' => $request->get('sort_order', $request->get('sortOrder', 'desc')),
-                'per_page' => $request->get('per_page', $request->get('perPage', 20)),
-            ];
+            $filters = array_merge([
+                'sort_by' => 'date',
+                'sort_order' => 'desc',
+                'per_page' => 20,
+            ], $request->validated());
 
             $orders = $this->orderService->getAll($filters);
 
