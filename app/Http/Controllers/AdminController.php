@@ -4,15 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Enums\UserRoleEnum;
 use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserPasswordRequest;
 use App\Http\Requests\User\UpdateUserAccessRequest;
 use App\Http\Requests\IndexAdminUsersRequest;
 use App\Models\User;
+use App\Services\AdminUserService;
 use Illuminate\Support\Facades\Hash;
 use App\Helpers\ApiResponse;
 
 
 class AdminController extends Controller
 {
+    public function __construct(
+        protected AdminUserService $adminUserService
+    ) {
+    }
 
     public function store(StoreUserRequest $request)
     {
@@ -35,6 +41,19 @@ class AdminController extends Controller
         $user->update($request->validated());
 
         return ApiResponse::success($user, 'User access updated successfully');
+    }
+
+    public function updatePassword(UpdateUserPasswordRequest $request, int $id)
+    {
+        $user = $this->adminUserService->updatePassword(
+            $id,
+            $request->validated('password')
+        );
+
+        return ApiResponse::success(
+            $user,
+            'User password updated successfully'
+        );
     }
 
     //---------------------------------------------------------------------------------------------------------------

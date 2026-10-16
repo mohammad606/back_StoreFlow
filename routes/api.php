@@ -32,6 +32,7 @@ Route::prefix('auth')->middleware('throttle:5,1')->group(function () {
             Route::get('/users', [AdminController::class, 'index'])->name('users.index');
             Route::delete('/users/{id}', [AdminController::class, 'destroy'])->name('users.destroy');
             Route::patch('/users/{id}/access', [AdminController::class, 'updateAccess'])->name('users.access');
+            Route::patch('/users/{id}/password', [AdminController::class, 'updatePassword'])->name('users.password');
 
         });
 
