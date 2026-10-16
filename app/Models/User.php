@@ -1,10 +1,12 @@
 <?php
 
 namespace App\Models;
+
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\UserRoleEnum;
 use App\Enums\UserStatusEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
@@ -15,7 +17,9 @@ class User extends Authenticatable implements JWTSubject
     use HasFactory, Notifiable;
 
     public const STATUS_FREE_TRIAL = UserStatusEnum::FreeTrial->value;
+
     public const STATUS_ACTIVE = UserStatusEnum::Active->value;
+
     public const STATUS_BLOCKED = UserStatusEnum::Blocked->value;
 
     /**
@@ -34,6 +38,7 @@ class User extends Authenticatable implements JWTSubject
         'trial_ends_at',
         'subscription_starts_at',
         'subscription_ends_at',
+        'representatives_limit',
     ];
 
     /**
@@ -61,12 +66,18 @@ class User extends Authenticatable implements JWTSubject
             'trial_ends_at' => 'datetime',
             'subscription_starts_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
+            'representatives_limit' => 'integer',
         ];
     }
 
     public function isFreeTrial(): bool
     {
         return $this->status === UserStatusEnum::FreeTrial;
+    }
+
+    public function representatives(): HasMany
+    {
+        return $this->hasMany(Representative::class);
     }
 
     public function isActive(): bool
@@ -82,7 +93,7 @@ class User extends Authenticatable implements JWTSubject
     public function hasValidAccessPeriod(): bool
     {
         if ($this->status === UserStatusEnum::Active) {
-            if (!$this->subscription_starts_at || !$this->subscription_ends_at) {
+            if (! $this->subscription_starts_at || ! $this->subscription_ends_at) {
                 return false;
             }
 

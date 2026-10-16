@@ -97,7 +97,9 @@ class AuthController extends Controller
     //---------------------------------------------------------------------------------------------------------------
     public function me()
     {
-        return ApiResponse::success(Auth::guard('api')->user(), 'Current user');
+        $user = Auth::guard('api')->user()->load('representatives');
+
+        return ApiResponse::success($user, 'Current user');
     }
     //---------------------------------------------------------------------------------------------------------------
     public function updateName(UpdateNameRequest $request)

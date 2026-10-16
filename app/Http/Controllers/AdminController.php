@@ -3,22 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRoleEnum;
+use App\Helpers\ApiResponse;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserPasswordRequest;
-use App\Http\Requests\User\UpdateUserAccessRequest;
+use App\Http\Requests\Admin\UpdateUserRepresentativesLimitRequest;
+use App\Http\Requests\IndexAdminRepresentativesRequest;
 use App\Http\Requests\IndexAdminUsersRequest;
+use App\Http\Requests\User\UpdateUserAccessRequest;
 use App\Models\User;
 use App\Services\AdminUserService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Hash;
-use App\Helpers\ApiResponse;
-
 
 class AdminController extends Controller
 {
     public function __construct(
         protected AdminUserService $adminUserService
-    ) {
-    }
+    ) {}
 
     public function store(StoreUserRequest $request)
     {
@@ -56,7 +57,44 @@ class AdminController extends Controller
         );
     }
 
-    //---------------------------------------------------------------------------------------------------------------
+    public function updateRepresentativesLimit(UpdateUserRepresentativesLimitRequest $request, int $id)
+    {
+        $user = $this->adminUserService->updateRepresentativesLimit(
+            $id,
+            $request->validated('representatives_limit')
+        );
+
+        return ApiResponse::success($user, 'User representative limit updated successfully');
+    }
+
+    public function destroyRepresentative(int $id)
+    {
+        try {
+            $this->adminUserService->deleteRepresentative($id);
+
+            return ApiResponse::success([], 'Representative deleted successfully');
+        } catch (ModelNotFoundException) {
+            return ApiResponse::error('Representative not found', 404);
+        }
+    }
+
+    public function indexRepresentatives(IndexAdminRepresentativesRequest $request)
+    {
+        $filters = array_merge([
+            'sort_by' => 'id',
+            'sort_order' => 'desc',
+            'per_page' => 20,
+        ], $request->validated());
+
+        $representatives = $this->adminUserService->getAllRepresentatives($filters);
+
+        return ApiResponse::success(
+            $representatives,
+            'Representatives retrieved successfully'
+        );
+    }
+
+    // ---------------------------------------------------------------------------------------------------------------
     public function index(IndexAdminUsersRequest $request)
     {
         $filters = array_merge([
@@ -83,7 +121,7 @@ class AdminController extends Controller
         return ApiResponse::success($users, 'Users retrieved successfully');
     }
 
-    //---------------------------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------------------------
     public function destroy($id)
     {
         $user = User::findOrFail($id);
@@ -96,5 +134,4 @@ class AdminController extends Controller
 
         return ApiResponse::success([], 'User deleted successfully');
     }
-
 }
